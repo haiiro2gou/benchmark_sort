@@ -44,7 +44,8 @@ struct get_key_t : public std::unary_function<val_t,key_type>
 
 int main() {
     using namespace std;
-    static const int N = 1e2;
+    printf("N> ");
+    static int N; cin >> N;
     vector<val_t> a(N);
 
     srand(time(NULL));
