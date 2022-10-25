@@ -5,6 +5,7 @@
 #include <iterator>
 #include <cstdlib>
 #include <chrono>
+#include <map>
 #include <omp.h>
 #include "bubble_sort.cpp"
 #include "comb_sort.cpp"
@@ -69,6 +70,7 @@ int main() {
     auto vec = a;
     chrono::system_clock::time_point start, end;
     double estimated;
+    map<string,vector<double>> res;
 
     #pragma omp parallel sections
     {
@@ -80,7 +82,7 @@ int main() {
             std::sort(vec.begin(), vec.end(), cmp_t());
             end = chrono::system_clock::now();
             estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-            printf("  Default Sort: %13.6lf ms\n", estimated);
+            res["Default"].push_back(estimated);
             // */
         }
 
@@ -92,7 +94,7 @@ int main() {
             bubble_sort(vec.begin(), vec.end(), cmp_t());
             end = chrono::system_clock::now();
             estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-            printf("   Bubble Sort: %13.6lf ms\n", estimated);
+            res["Bubble"].push_back(estimated);
             // */
         }
 
@@ -104,7 +106,7 @@ int main() {
             comb_sort(vec.begin(), vec.end(), cmp_t());
             end = chrono::system_clock::now();
             estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-            printf("     Comb Sort: %13.6lf ms\n", estimated);
+            res["Comb"].push_back(estimated);
             // */
         }
 
@@ -116,7 +118,7 @@ int main() {
             heap_sort1(vec.begin(), vec.end(), cmp_t());
             end = chrono::system_clock::now();
             estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-            printf("     Heap Sort: %13.6lf ms\n", estimated);
+            res["Heap"].push_back(estimated);
             // */
         }
 
@@ -128,7 +130,7 @@ int main() {
             insertion_sort(vec.begin(), vec.end(), cmp_t());
             end = chrono::system_clock::now();
             estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-            printf("Insertion Sort: %13.6lf ms\n", estimated);
+            res["Insertion"].push_back(estimated);
             // */
         }
 
@@ -140,7 +142,7 @@ int main() {
             merge_sort(vec.begin(), vec.end(), cmp_t());
             end = chrono::system_clock::now();
             estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-            printf("    Merge Sort: %13.6lf ms\n", estimated);
+            res["Merge"].push_back(estimated);
             // */
         }
 
@@ -152,7 +154,7 @@ int main() {
             quick_sort(vec.begin(), vec.end(), cmp_t());
             end = chrono::system_clock::now();
             estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-            printf("    Quick Sort: %13.6lf ms\n", estimated);
+            res["Quick"].push_back(estimated);
             // */
         }
 
@@ -164,7 +166,7 @@ int main() {
             radix_sort<8, 32>(vec.begin(), vec.end(), get_key_t());
             end = chrono::system_clock::now();
             estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-            printf("    Radix Sort: %13.6lf ms\n", estimated);
+            res["Radix"].push_back(estimated);
             // */
         }
 
@@ -176,7 +178,7 @@ int main() {
             selection_sort(vec.begin(), vec.end(), cmp_t());
             end = chrono::system_clock::now();
             estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-            printf("Selection Sort: %13.6lf ms\n", estimated);
+            res["Selection"].push_back(estimated);
             // */
         }
 
@@ -188,7 +190,7 @@ int main() {
             intro_sort(vec.begin(), vec.end(), cmp_t());
             end = chrono::system_clock::now();
             estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-            printf("    Intro Sort: %13.6lf ms\n", estimated);
+            res["Intro"].push_back(estimated);
             // */
         }
     }
@@ -200,5 +202,10 @@ int main() {
         else cout << " ";
     }
     // */
+    for (auto itr = res.begin(); itr != res.end(); ++itr) {
+        for (auto itr2 = itr->second.begin(); itr2 != itr->second.end(); ++itr2) {
+            printf("%9s Sort: %13.6lf ms\n", itr->first.c_str(), *itr2);
+        }
+    }
     return 0;
 }
