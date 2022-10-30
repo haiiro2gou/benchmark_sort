@@ -68,156 +68,156 @@ int main() {
     printf("Max Threads: %d\n", omp_get_max_threads());
     // */
 
-    auto vec = a;
-    sort(vec.begin(), vec.end(), cmp_t());
+    auto vec = a, sorted = a;
+    std::sort(sorted.begin(), sorted.end(), cmp_t());
     chrono::system_clock::time_point start, end;
     double estimated;
+    bool suc;
     map<string,vector<string>> res;
 
-    #pragma omp parallel sections private(start,end)
+    #pragma omp parallel sections private(vec, start, end, estimated, suc) shared(a, res)
     {
         #pragma omp section
         {
             //* default sort
-            auto default_vec = a;
+            vec = a;
             start = chrono::system_clock::now();
-            std::sort(default_vec.begin(), default_vec.end(), cmp_t());
+            std::sort(vec.begin(), vec.end(), cmp_t());
             end = chrono::system_clock::now();
             estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-            bool default_suc = true;
-            for (int i = 0; i < N; ++i) { if (vec[i].key != default_vec[i].key) default_suc = false; }
-            res["Default"].push_back(default_suc ? to_string(estimated) : "Failed!");
+            suc = true;
+            for (int i = 0; i < N; ++i) { if (vec[i].key != sorted[i].key) suc = false; }
+            res["Default"].push_back(suc ? to_string(estimated) : "Failed!");
             // */
         }
 
         #pragma omp section
         {
             //* bubble sort
-            auto bubble_vec = a;
+            vec = a;
             start = chrono::system_clock::now();
-            bubble_sort(bubble_vec.begin(), bubble_vec.end(), cmp_t());
+            bubble_sort(vec.begin(), vec.end(), cmp_t());
             end = chrono::system_clock::now();
             estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-            bool bubble_suc = true;
-            for (int i = 0; i < N; ++i) { if (vec[i].key != bubble_vec[i].key) bubble_suc = false; }
-            res["Bubble"].push_back(bubble_suc ? to_string(estimated) : "Failed!");
+            suc = true;
+            for (int i = 0; i < N; ++i) { if (vec[i].key != sorted[i].key) suc = false; }
+            res["Bubble"].push_back(suc ? to_string(estimated) : "Failed!");
             // */
         }
 
         #pragma omp section
         {
             //* comb sort
-            auto comb_vec = a;
+            vec = a;
             start = chrono::system_clock::now();
-            comb_sort(comb_vec.begin(), comb_vec.end(), cmp_t());
+            comb_sort(vec.begin(), vec.end(), cmp_t());
             end = chrono::system_clock::now();
             estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-            bool comb_suc = true;
-            for (int i = 0; i < N; ++i) { if (vec[i].key != comb_vec[i].key) comb_suc = false; }
-            res["Comb"].push_back(comb_suc ? to_string(estimated) : "Failed!");
+            suc = true;
+            for (int i = 0; i < N; ++i) { if (vec[i].key != sorted[i].key) suc = false; }
+            res["Comb"].push_back(suc ? to_string(estimated) : "Failed!");
             // */
         }
 
         #pragma omp section
         {
             //* heap sort
-            auto heap_vec = a;
+            vec = a;
             start = chrono::system_clock::now();
-            heap_sort1(heap_vec.begin(), heap_vec.end(), cmp_t());
+            heap_sort1(vec.begin(), vec.end(), cmp_t());
             end = chrono::system_clock::now();
             estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-            bool heap_suc = true;
-            for (int i = 0; i < N; ++i) { if (vec[i].key != heap_vec[i].key) heap_suc = false; }
-            res["Heap"].push_back(heap_suc ? to_string(estimated) : "Failed!");
+            suc = true;
+            for (int i = 0; i < N; ++i) { if (vec[i].key != sorted[i].key) suc = false; }
+            res["Heap"].push_back(suc ? to_string(estimated) : "Failed!");
             // */
         }
 
         #pragma omp section
         {
             //* insertion sort
-            auto insertion_vec = a;
+            vec = a;
             start = chrono::system_clock::now();
-            insertion_sort(insertion_vec.begin(), insertion_vec.end(), cmp_t());
+            insertion_sort(vec.begin(), vec.end(), cmp_t());
             end = chrono::system_clock::now();
             estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-            bool insertion_suc = true;
-            for (int i = 0; i < N; ++i) { if (vec[i].key != insertion_vec[i].key) insertion_suc = false; }
-            res["Insertion"].push_back(insertion_suc ? to_string(estimated) : "Failed!");
+            suc = true;
+            for (int i = 0; i < N; ++i) { if (vec[i].key != sorted[i].key) suc = false; }
+            res["Insertion"].push_back(suc ? to_string(estimated) : "Failed!");
             // */
         }
 
         #pragma omp section
         {
             //* merge sort
-            auto merge_vec = a;
+            vec = a;
             start = chrono::system_clock::now();
-            merge_sort(merge_vec.begin(), merge_vec.end(), cmp_t());
+            merge_sort(vec.begin(), vec.end(), cmp_t());
             end = chrono::system_clock::now();
             estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-            bool merge_suc = true;
-            for (int i = 0; i < N; ++i) { if (vec[i].key != merge_vec[i].key) merge_suc = false; }
-            res["Merge"].push_back(merge_suc ? to_string(estimated) : "Failed!");
+            suc = true;
+            for (int i = 0; i < N; ++i) { if (vec[i].key != sorted[i].key) suc = false; }
+            res["Merge"].push_back(suc ? to_string(estimated) : "Failed!");
             // */
         }
 
         #pragma omp section
         {
             //* quick sort
-            auto quick_vec = a;
+            vec = a;
             start = chrono::system_clock::now();
-            quick_sort(quick_vec.begin(), quick_vec.end(), cmp_t());
+            quick_sort(vec.begin(), vec.end(), cmp_t());
             end = chrono::system_clock::now();
             estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-            bool quick_suc = true;
-            for (int i = 0; i < N; ++i) { if (vec[i].key != quick_vec[i].key) quick_suc = false; }
-            res["Quick"].push_back(quick_suc ? to_string(estimated) : "Failed!");
+            suc = true;
+            for (int i = 0; i < N; ++i) { if (vec[i].key != sorted[i].key) suc = false; }
+            res["Quick"].push_back(suc ? to_string(estimated) : "Failed!");
             // */
         }
 
         #pragma omp section
         {
             //* radix sort
-            auto radix_vec = a;
+            vec = a;
             start = chrono::system_clock::now();
-            radix_sort<8, 32>(radix_vec.begin(), radix_vec.end(), get_key_t());
+            radix_sort<8, 32>(vec.begin(), vec.end(), get_key_t());
             end = chrono::system_clock::now();
             estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-            bool radix_suc = true;
-            for (int i = 0; i < N; ++i) { if (vec[i].key != radix_vec[i].key) radix_suc = false; }
-            res["Radix"].push_back(radix_suc ? to_string(estimated) : "Failed!");
+            suc = true;
+            for (int i = 0; i < N; ++i) { if (vec[i].key != sorted[i].key) suc = false; }
+            res["Radix"].push_back(suc ? to_string(estimated) : "Failed!");
             // */
         }
 
         #pragma omp section
         {
             //* selection sort
-            auto selection_vec = a;
+            vec = a;
             start = chrono::system_clock::now();
-            selection_sort(selection_vec.begin(), selection_vec.end(), cmp_t());
+            selection_sort(vec.begin(), vec.end(), cmp_t());
             end = chrono::system_clock::now();
             estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-            bool selection_suc = true;
-            for (int i = 0; i < N; ++i) { if (vec[i].key != selection_vec[i].key) selection_suc = false;}
-            res["Selection"].push_back(selection_suc ? to_string(estimated) : "Failed!");
+            bool suc = true;
+            for (int i = 0; i < N; ++i) { if (vec[i].key != sorted[i].key) suc = false;}
+            res["Selection"].push_back(suc ? to_string(estimated) : "Failed!");
             // */
         }
 
         #pragma omp section
         {
             //* intro sort
-            auto intro_vec = a;
+            vec = a;
             start = chrono::system_clock::now();
-            intro_sort(intro_vec.begin(), intro_vec.end(), cmp_t());
+            intro_sort(vec.begin(), vec.end(), cmp_t());
             end = chrono::system_clock::now();
             estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-            bool intro_suc = true;
-            for (int i = 0; i < N; ++i) { if (vec[i].key != intro_vec[i].key) intro_suc = false; }
-            res["Intro"].push_back(intro_suc ? to_string(estimated) : "Failed!");
+            suc = true;
+            for (int i = 0; i < N; ++i) { if (vec[i].key != sorted[i].key) suc = false; }
+            res["Intro"].push_back(suc ? to_string(estimated) : "Failed!");
             // */
         }
     }
 
-    sleep(1);
     /*
     for (int i = 0; i < N; i++) {
         cout << vec[i].key;
