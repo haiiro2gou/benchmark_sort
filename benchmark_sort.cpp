@@ -1,10 +1,11 @@
-#include <iostream>
-#include <functional>
-#include <vector>
-#include <algorithm>
-#include <iterator>
-#include <cstdlib>
 #include <chrono>
+#include <climits>
+#include <cmath>
+#include <fstream>
+#include <numeric>
+#include <omp.h>
+#include <random>
+
 #include "library/bubble_sort.cpp"
 #include "library/comb_sort.cpp"
 #include "library/heap_sort1.cpp"
@@ -16,7 +17,7 @@
 
 #include "library/intro_sort.cpp"
 
-typedef int key_type;
+typedef uint32_t key_type;
 
 struct val_t {
     key_type key;
@@ -42,125 +43,282 @@ struct get_key_t : public std::unary_function<val_t,key_type>
     key_type operator()(const val_t& x) const { return x.key; }
 };
 
+const int inf = INT_MAX / 2;
+
+inline double round(double x, int p) {
+    int64_t xp10 = pow(10, p);
+    return double(round(x * xp10)) / xp10;
+}
+
+std::vector<val_t> get_rand_vector(int size) {
+    std::random_device seed_gen;
+    std::mt19937 engine(seed_gen());
+    std::vector<val_t> random_vector(size);
+    for (int i = 0; i < size; i++) {
+        random_vector[i].key = engine();
+        random_vector[i].data = i;
+    }
+    return random_vector;
+}
+
+int N, M;
+void input() {
+    printf("N> ");
+    scanf("%d", &N);
+    if (N > 7) {
+        N = 7;
+        printf("N is too big, so N has been set to 7.\n");
+        fflush(stdout);
+    }
+    if (N < 1) {
+        N = 1;
+        printf("N is too small, so N has been set to 1.\n");
+        fflush(stdout);
+    }
+    printf("M> ");
+    scanf("%d", &M);
+    if (M > 50) {
+        M = 50;
+        printf("M is too big, so M has been set to 50.\n");
+        fflush(stdout);
+    }
+    if (M < 1) {
+        M = 1;
+        printf("M is too small, so M has been set to 1.\n");
+        fflush(stdout);
+    }
+}
+
 int main() {
     using namespace std;
-    printf("N> ");
-    static int N; cin >> N;
-    vector<val_t> a(N);
 
-    srand(time(NULL));
-    for (int i = 0; i < N; i++) {
-        a[i].key = rand();
-        a[i].data = i;
+    // 設定部
+    input();
+    vector<double> log_10(10);
+    for (int i = 0; i < 10; i++) {
+        log_10[i] = pow(10, 1.0 * (i+1) / 10 - 1);
     }
-    /*
-    for (int i = 0; i < N; i++) {
-        cout << a[i].key;
-        if (i == N - 1) cout << endl;
-        else cout << " ";
+
+    // 処理部
+    vector<vector<double>> data(N*10, vector<double>(10));
+
+    int cur = 0;
+    vector<int> stack;
+    int mx = int(pow(10, N));
+    for (int xp10 = 10; xp10 <= mx; xp10 *= 10) {
+        for (auto x : log_10) {
+            int size = x * xp10;
+            /* stack check
+            if (!binary_search(stack.begin(), stack.end(), size)) stack.push_back(size);
+            else continue;
+            //*/
+            vector<double> res[10];
+
+            // 進捗バー1
+            string progress1 = "";
+            for (int i = 0; i < 20; i++) {
+                if (size * 20 >= i * mx) progress1 += "#";
+                else break;
+            }
+            fprintf(stderr, "[%-20s] %6.2lf%% (%d/%d)\n", progress1.c_str(), 100.0*size/mx, size, mx);
+
+            for (int i = 0; i < M; i++) {
+                // 進捗バー2
+                string progress2 = "";
+                for (int j = 0; j < 20; j++) {
+                    if ((i+1) * 20 >= j * M) progress2 += "#";
+                    else break;
+                }
+                fprintf(stderr, "[%-20s] %6.2lf%% (%d/%d)\r", progress2.c_str(), 100.0*(i+1)/M, i+1, M);
+
+                vector<val_t> base = get_rand_vector(size);
+                auto sorted = base;
+                sort(sorted.begin(), sorted.end(), cmp_t());
+
+                vector<val_t> vec;
+                chrono::system_clock::time_point start, end;
+                double estimated;
+                bool suc;
+                #pragma omp parallel sections private(vec, start, end, estimated, suc) shared (base, res)
+                {
+                    //* default sort
+                    #pragma omp section
+                    {
+                        vec = base;
+                        start = chrono::system_clock::now();
+                        sort(vec.begin(), vec.end(), cmp_t());
+                        end = chrono::system_clock::now();
+                        estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
+                        suc = true;
+                        for (int i = 0; i < size; i++) { if (vec[i].key != sorted[i].key) suc = false; }
+                        res[0].push_back(suc ? estimated : -1);
+                    }
+                    //*/
+
+                    //* comb sort
+                    #pragma omp section
+                    {
+                        vec = base;
+                        start = chrono::system_clock::now();
+                        comb_sort(vec.begin(), vec.end(), cmp_t());
+                        end = chrono::system_clock::now();
+                        estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
+                        suc = true;
+                        for (int i = 0; i < size; i++) { if (vec[i].key != sorted[i].key) suc = false; }
+                        res[2].push_back(suc ? estimated : -1);
+                    }
+                    //*/
+
+                    //* heap sort
+                    #pragma omp section
+                    {
+                        vec = base;
+                        start = chrono::system_clock::now();
+                        heap_sort1(vec.begin(), vec.end(), cmp_t());
+                        end = chrono::system_clock::now();
+                        estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
+                        suc = true;
+                        for (int i = 0; i < size; i++) { if (vec[i].key != sorted[i].key) suc = false; }
+                        res[3].push_back(suc ? estimated : -1);
+                    }
+                    //*/
+
+                    //* merge sort
+                    #pragma omp section
+                    {
+                        vec = base;
+                        start = chrono::system_clock::now();
+                        merge_sort(vec.begin(), vec.end(), cmp_t());
+                        end = chrono::system_clock::now();
+                        estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
+                        suc = true;
+                        for (int i = 0; i < size; i++) { if (vec[i].key != sorted[i].key) suc = false; }
+                        res[5].push_back(suc ? estimated : -1);
+                    }
+                    //*/
+
+                    //* quick sort
+                    #pragma omp section
+                    {
+                        vec = base;
+                        start = chrono::system_clock::now();
+                        quick_sort(vec.begin(), vec.end(), cmp_t());
+                        end = chrono::system_clock::now();
+                        estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
+                        suc = true;
+                        for (int i = 0; i < size; i++) { if (vec[i].key != sorted[i].key) suc = false; }
+                        res[6].push_back(suc ? estimated : -1);
+                    }
+                    //*/
+
+                    //* radix sort
+                    #pragma omp section
+                    {
+                        vec = base;
+                        start = chrono::system_clock::now();
+                        radix_sort<8, 32>(vec.begin(), vec.end(), get_key_t());
+                        end = chrono::system_clock::now();
+                        estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
+                        suc = true;
+                        for (int i = 0; i < size; i++) { if (vec[i].key != sorted[i].key) suc = false; }
+                        res[7].push_back(suc ? estimated : -1);
+                    }
+                    //*/
+
+                    //* intro sort
+                    #pragma omp section
+                    {
+                        vec = base;
+                        start = chrono::system_clock::now();
+                        intro_sort(vec.begin(), vec.end(), cmp_t());
+                        end = chrono::system_clock::now();
+                        estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
+                        suc = true;
+                        for (int i = 0; i < size; i++) { if (vec[i].key != sorted[i].key) suc = false; }
+                        res[9].push_back(suc ? estimated : -1);
+                    }
+                    //*/
+
+                    //* bubble sort
+                    #pragma omp section
+                    {
+                        if (size > 10000) { res[1].push_back(-1); }
+                        else {
+                            vec = base;
+                            start = chrono::system_clock::now();
+                            bubble_sort(vec.begin(), vec.end(), cmp_t());
+                            end = chrono::system_clock::now();
+                            estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/100000.0);
+                            suc = true;
+                            for (int i = 0; i < size; i++) { if (vec[i].key != sorted[i].key) suc = false; }
+                            res[1].push_back(suc ? estimated : -1);
+                        }
+                    }
+                    //*/
+
+                    //* insertion sort
+                    #pragma omp section
+                    {
+                        if (size > 10000) { res[4].push_back(-1); }
+                        else {
+                            vec = base;
+                            start = chrono::system_clock::now();
+                            bubble_sort(vec.begin(), vec.end(), cmp_t());
+                            end = chrono::system_clock::now();
+                            estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/100000.0);
+                            suc = true;
+                            for (int i = 0; i < size; i++) { if (vec[i].key != sorted[i].key) suc = false; }
+                            res[4].push_back(suc ? estimated : -1);
+                        }
+                    }
+                    //*/
+
+                    //* selection sort
+                    #pragma omp section
+                    {
+                        if (size > 10000) { res[8].push_back(-1); }
+                        else {
+                            vec = base;
+                            start = chrono::system_clock::now();
+                            bubble_sort(vec.begin(), vec.end(), cmp_t());
+                            end = chrono::system_clock::now();
+                            estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/100000.0);
+                            suc = true;
+                            for (int i = 0; i < size; i++) { if (vec[i].key != sorted[i].key) suc = false; }
+                            res[8].push_back(suc ? estimated : -1);
+                        }
+                    }
+                    //*/
+                }
+            }
+
+            vector<bool> check(10, true);
+            for (int i = 0; i < 10; i++) {
+                for (auto x : res[i]) {
+                    if (x == -1) check[i] = false;
+                }
+            }
+
+            for (int i = 0; i < 10; i++) {
+                if (check[i]) data[cur][i] = accumulate(res[i].begin(), res[i].end(), 0.0) / res[i].size();
+                else data[cur][i] = -1;
+            }
+            cur++;
+
+            fprintf(stderr, "\033[K\033[1A");
+        }
     }
-    // */
+    fprintf(stderr,"\033[Kfinish!\n");
 
-    auto vec = a;
-    chrono::system_clock::time_point start, end;
-    double estimated;
-
-    //* default sort
-    vec = a;
-    start = chrono::system_clock::now();
-    std::sort(vec.begin(), vec.end(), cmp_t());
-    end = chrono::system_clock::now();
-    estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-    printf("  Default Sort: %13.6lf ms\n", estimated);
-    // */
-
-    //* bubble sort
-    vec = a;
-    start = chrono::system_clock::now();
-    bubble_sort(vec.begin(), vec.end(), cmp_t());
-    end = chrono::system_clock::now();
-    estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-    printf("   Bubble Sort: %13.6lf ms\n", estimated);
-    // */
-
-    //* comb sort
-    vec = a;
-    start = chrono::system_clock::now();
-    comb_sort(vec.begin(), vec.end(), cmp_t());
-    end = chrono::system_clock::now();
-    estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-    printf("     Comb Sort: %13.6lf ms\n", estimated);
-    // */
-
-    //* heap sort
-    vec = a;
-    start = chrono::system_clock::now();
-    heap_sort1(vec.begin(), vec.end(), cmp_t());
-    end = chrono::system_clock::now();
-    estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-    printf("     Heap Sort: %13.6lf ms\n", estimated);
-    // */
-
-    //* insertion sort
-    vec = a;
-    start = chrono::system_clock::now();
-    insertion_sort(vec.begin(), vec.end(), cmp_t());
-    end = chrono::system_clock::now();
-    estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-    printf("Insertion Sort: %13.6lf ms\n", estimated);
-    // */
-
-    //* merge sort
-    vec = a;
-    start = chrono::system_clock::now();
-    merge_sort(vec.begin(), vec.end(), cmp_t());
-    end = chrono::system_clock::now();
-    estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-    printf("    Merge Sort: %13.6lf ms\n", estimated);
-    // */
-
-    //* quick sort
-    vec = a;
-    start = chrono::system_clock::now();
-    quick_sort(vec.begin(), vec.end(), cmp_t());
-    end = chrono::system_clock::now();
-    estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-    printf("    Quick Sort: %13.6lf ms\n", estimated);
-    // */
-
-    //* radix sort
-    vec = a;
-    start = chrono::system_clock::now();
-    radix_sort<8, 32>(vec.begin(), vec.end(), get_key_t());
-    end = chrono::system_clock::now();
-    estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-    printf("    Radix Sort: %13.6lf ms\n", estimated);
-    // */
-
-    //* selection sort
-    vec = a;
-    start = chrono::system_clock::now();
-    selection_sort(vec.begin(), vec.end(), cmp_t());
-    end = chrono::system_clock::now();
-    estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-    printf("Selection Sort: %13.6lf ms\n", estimated);
-    // */
-
-    //* intro sort
-    vec = a;
-    start = chrono::system_clock::now();
-    intro_sort(vec.begin(), vec.end(), cmp_t());
-    end = chrono::system_clock::now();
-    estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/1000000.0);
-    printf("    Intro Sort: %13.6lf ms\n", estimated);
-    // */
-
-    /*
-    for (int i = 0; i < N; i++) {
-        cout << vec[i].key;
-        if (i == N - 1) cout << endl;
-        else cout << " ";
+    // 出力部
+    string path = "./result/amount.csv";
+    ofstream ofs(path);
+    if (ofs) {
+        // ofs << "Default,Bubble,Comb,Heap,Insertion,Merge,Quick,Radix,Selection,Intro" << endl;
+        for (size_t i = 0; i < data.size(); i++) {
+            for (size_t j = 0; j < data[i].size(); j++) { ofs << data[i][j] << (j < data[i].size() - 1 ? "," : "\n"); }
+        }
     }
-    // */
+
     return 0;
 }
