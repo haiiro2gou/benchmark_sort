@@ -8,16 +8,16 @@
 #include <map>
 #include <omp.h>
 #include <unistd.h>
-#include "bubble_sort.cpp"
-#include "comb_sort.cpp"
-#include "heap_sort1.cpp"
-#include "insertion_sort.cpp"
-#include "merge_sort.cpp"
-#include "quick_sort.cpp"
-#include "radix_sort.cpp"
-#include "selection_sort.cpp"
+#include "library/bubble_sort.cpp"
+#include "library/comb_sort.cpp"
+#include "library/heap_sort1.cpp"
+#include "library/insertion_sort.cpp"
+#include "library/merge_sort.cpp"
+#include "library/quick_sort.cpp"
+#include "library/radix_sort.cpp"
+#include "library/selection_sort.cpp"
 
-#include "intro_sort.cpp"
+#include "library/intro_sort.cpp"
 
 typedef int key_type;
 
