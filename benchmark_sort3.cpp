@@ -96,7 +96,7 @@ int main() {
     input();
     vector<double> log_10(10);
     for (int i = 0; i < 10; i++) {
-        log_10[i] = round(pow(10, 1.0 * (i+1) / 10 - 1), 2);
+        log_10[i] = pow(10, 1.0 * (i+1) / 10 - 1);
     }
 
     // 処理部
