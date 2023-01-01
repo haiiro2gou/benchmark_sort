@@ -78,9 +78,9 @@ void input() {
     }
     printf("M> ");
     std::cin >> M;
-    if (M > 50) {
-        M = 50;
-        printf("M is too big, so M has been set to 50.\n");
+    if (M > 100) {
+        M = 100;
+        printf("M is too big, so M has been set to 100.\n");
         fflush(stdout);
     }
     if (M < 1) {
