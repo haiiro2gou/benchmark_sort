@@ -2,6 +2,7 @@
 #include <climits>
 #include <cmath>
 #include <fstream>
+#include <iostream>
 #include <numeric>
 #include <omp.h>
 #include <random>
@@ -64,7 +65,7 @@ std::vector<val_t> get_rand_vector(int size) {
 int N, M;
 void input() {
     printf("N> ");
-    scanf("%d", &N);
+    std::cin >> N;
     if (N > 7) {
         N = 7;
         printf("N is too big, so N has been set to 7.\n");
@@ -76,7 +77,7 @@ void input() {
         fflush(stdout);
     }
     printf("M> ");
-    scanf("%d", &M);
+    std::cin >> M;
     if (M > 50) {
         M = 50;
         printf("M is too big, so M has been set to 50.\n");
@@ -102,6 +103,8 @@ int main() {
     // 処理部
     vector<vector<double>> data(N*10, vector<double>(10));
 
+    chrono::system_clock::time_point all_start = chrono::system_clock::now();
+
     int cur = 0;
     vector<int> stack;
     int mx = int(pow(10, N));
@@ -116,20 +119,20 @@ int main() {
 
             // 進捗バー1
             string progress1 = "";
-            for (int i = 0; i < 20; i++) {
-                if (size * 20 >= i * mx) progress1 += "#";
+            for (int i = 0; i < 30; i++) {
+                if (size * 30 >= i * mx) progress1 += "#";
                 else break;
             }
-            fprintf(stderr, "[%-20s] %6.2lf%% (%d/%d)\n", progress1.c_str(), 100.0*size/mx, size, mx);
+            fprintf(stderr, "[%-30s] %6.2lf%% (%d/%d)\n", progress1.c_str(), 100.0*size/mx, size, mx);
 
             for (int i = 0; i < M; i++) {
                 // 進捗バー2
                 string progress2 = "";
-                for (int j = 0; j < 20; j++) {
-                    if ((i+1) * 20 >= j * M) progress2 += "#";
+                for (int j = 0; j < 30; j++) {
+                    if (i * 30 >= j * M) progress2 += "#";
                     else break;
                 }
-                fprintf(stderr, "[%-20s] %6.2lf%% (%d/%d)\r", progress2.c_str(), 100.0*(i+1)/M, i+1, M);
+                fprintf(stderr, "[%-30s] %6.2lf%% (%d/%d)\r", progress2.c_str(), 100.0*(i+1)/M, i+1, M);
 
                 vector<val_t> base = get_rand_vector(size);
                 auto sorted = base;
@@ -308,7 +311,15 @@ int main() {
             fprintf(stderr, "\033[K\033[1A");
         }
     }
-    fprintf(stderr,"\033[Kfinish!\n");
+    chrono::system_clock::time_point all_end = chrono::system_clock::now();
+    int all_estimated = static_cast<int>(chrono::duration_cast<chrono::milliseconds>(all_end-all_start).count()/1000.0);
+    fprintf(stderr,"\033[Kfinish! (");
+    if (all_estimated/(24*60*60)) fprintf(stderr, "%dd %02dh %02dm %02ds", all_estimated/(24*60*60), all_estimated/(60*60)%24, all_estimated/60%60, all_estimated%60);
+    else if (all_estimated/(60*60)) fprintf(stderr, "%dh %02dm %02ds", all_estimated/(60*60)%24, all_estimated/60%60, all_estimated%60);
+    else if (all_estimated/60) fprintf(stderr, "%02dm %02ds", all_estimated/60%60, all_estimated%60);
+    else if (all_estimated) fprintf(stderr, "%ds", all_estimated%60);
+    else fprintf(stderr, "<1s");
+    fprintf(stderr, ")\n");
 
     // 出力部
     string path = "./result/amount.csv";

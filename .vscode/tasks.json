@@ -10,7 +10,8 @@
                 "-g",
                 "${file}",
                 "-o",
-                "${fileDirname}/${fileBasenameNoExtension}.out"
+                "${fileDirname}/${fileBasenameNoExtension}.out",
+                "-Ofast"
             ],
             "options": {
                 "cwd": "${fileDirname}"
