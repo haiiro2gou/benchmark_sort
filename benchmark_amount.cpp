@@ -49,12 +49,14 @@ inline double round(double x, int p) {
     return double(round(x * xp10)) / xp10;
 }
 
-std::vector<val_t> get_rand_vector(int size) {
+const int inf = INT_MAX / 2;
+
+std::vector<val_t> get_rand_vector(int size, int limit = inf) {
     std::random_device seed_gen;
     std::mt19937 engine(seed_gen());
     std::vector<val_t> random_vector(size);
     for (int i = 0; i < size; i++) {
-        random_vector[i].key = engine();
+        random_vector[i].key = engine() % limit;
         random_vector[i].data = i;
     }
     return random_vector;
@@ -132,7 +134,7 @@ int main() {
                 }
                 fprintf(stderr, "[%-30s] %6.2lf%% (%d/%d)\r", progress2.c_str(), 100.0*(i+1)/M, i+1, M);
 
-                vector<val_t> base = get_rand_vector(size);
+                vector<val_t> base = get_rand_vector(size, size);
                 auto sorted = base;
                 sort(sorted.begin(), sorted.end(), cmp_t());
 
