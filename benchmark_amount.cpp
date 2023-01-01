@@ -44,8 +44,6 @@ struct get_key_t : public std::unary_function<val_t,key_type>
     key_type operator()(const val_t& x) const { return x.key; }
 };
 
-const int inf = INT_MAX / 2;
-
 inline double round(double x, int p) {
     int64_t xp10 = pow(10, p);
     return double(round(x * xp10)) / xp10;
@@ -327,7 +325,11 @@ int main() {
     if (ofs) {
         // ofs << "Default,Bubble,Comb,Heap,Insertion,Merge,Quick,Radix,Selection,Intro" << endl;
         for (size_t i = 0; i < data.size(); i++) {
-            for (size_t j = 0; j < data[i].size(); j++) { ofs << data[i][j] << (j < data[i].size() - 1 ? "," : "\n"); }
+            for (size_t j = 0; j < data[i].size(); j++) {
+                char str[20];
+                sprintf(str, "%.9lf", data[i][j]);
+                ofs << str << (j < data[i].size() - 1 ? "," : "\n");
+            }
         }
     }
 
