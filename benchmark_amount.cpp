@@ -144,6 +144,57 @@ int main() {
                 bool suc;
                 #pragma omp parallel sections private(vec, start, end, estimated, suc) shared (base, res)
                 {
+                    //* bubble sort
+                    #pragma omp section
+                    {
+                        if (size > 10000) { res[1].push_back(-1); }
+                        else {
+                            vec = base;
+                            start = chrono::system_clock::now();
+                            bubble_sort(vec.begin(), vec.end(), cmp_t());
+                            end = chrono::system_clock::now();
+                            estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/100000.0);
+                            suc = true;
+                            for (int i = 0; i < size; i++) { if (vec[i].key != sorted[i].key) suc = false; }
+                            res[1].push_back(suc ? estimated : -1);
+                        }
+                    }
+                    //*/
+
+                    //* insertion sort
+                    #pragma omp section
+                    {
+                        if (size > 10000) { res[4].push_back(-1); }
+                        else {
+                            vec = base;
+                            start = chrono::system_clock::now();
+                            bubble_sort(vec.begin(), vec.end(), cmp_t());
+                            end = chrono::system_clock::now();
+                            estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/100000.0);
+                            suc = true;
+                            for (int i = 0; i < size; i++) { if (vec[i].key != sorted[i].key) suc = false; }
+                            res[4].push_back(suc ? estimated : -1);
+                        }
+                    }
+                    //*/
+
+                    //* selection sort
+                    #pragma omp section
+                    {
+                        if (size > 10000) { res[8].push_back(-1); }
+                        else {
+                            vec = base;
+                            start = chrono::system_clock::now();
+                            bubble_sort(vec.begin(), vec.end(), cmp_t());
+                            end = chrono::system_clock::now();
+                            estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/100000.0);
+                            suc = true;
+                            for (int i = 0; i < size; i++) { if (vec[i].key != sorted[i].key) suc = false; }
+                            res[8].push_back(suc ? estimated : -1);
+                        }
+                    }
+                    //*/
+
                     //* default sort
                     #pragma omp section
                     {
@@ -239,57 +290,6 @@ int main() {
                         suc = true;
                         for (int i = 0; i < size; i++) { if (vec[i].key != sorted[i].key) suc = false; }
                         res[9].push_back(suc ? estimated : -1);
-                    }
-                    //*/
-
-                    //* bubble sort
-                    #pragma omp section
-                    {
-                        if (size > 10000) { res[1].push_back(-1); }
-                        else {
-                            vec = base;
-                            start = chrono::system_clock::now();
-                            bubble_sort(vec.begin(), vec.end(), cmp_t());
-                            end = chrono::system_clock::now();
-                            estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/100000.0);
-                            suc = true;
-                            for (int i = 0; i < size; i++) { if (vec[i].key != sorted[i].key) suc = false; }
-                            res[1].push_back(suc ? estimated : -1);
-                        }
-                    }
-                    //*/
-
-                    //* insertion sort
-                    #pragma omp section
-                    {
-                        if (size > 10000) { res[4].push_back(-1); }
-                        else {
-                            vec = base;
-                            start = chrono::system_clock::now();
-                            bubble_sort(vec.begin(), vec.end(), cmp_t());
-                            end = chrono::system_clock::now();
-                            estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/100000.0);
-                            suc = true;
-                            for (int i = 0; i < size; i++) { if (vec[i].key != sorted[i].key) suc = false; }
-                            res[4].push_back(suc ? estimated : -1);
-                        }
-                    }
-                    //*/
-
-                    //* selection sort
-                    #pragma omp section
-                    {
-                        if (size > 10000) { res[8].push_back(-1); }
-                        else {
-                            vec = base;
-                            start = chrono::system_clock::now();
-                            bubble_sort(vec.begin(), vec.end(), cmp_t());
-                            end = chrono::system_clock::now();
-                            estimated = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/100000.0);
-                            suc = true;
-                            for (int i = 0; i < size; i++) { if (vec[i].key != sorted[i].key) suc = false; }
-                            res[8].push_back(suc ? estimated : -1);
-                        }
                     }
                     //*/
                 }
