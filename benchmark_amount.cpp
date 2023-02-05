@@ -7,16 +7,16 @@
 #include <omp.h>
 #include <random>
 
-#include "library/bubble_sort.cpp"
-#include "library/comb_sort.cpp"
-#include "library/heap_sort1.cpp"
-#include "library/insertion_sort.cpp"
-#include "library/merge_sort.cpp"
-#include "library/quick_sort.cpp"
-#include "library/radix_sort.cpp"
-#include "library/selection_sort.cpp"
+#include "library/bubble_sort.h"
+#include "library/comb_sort.h"
+#include "library/heap_sort1.h"
+#include "library/insertion_sort.h"
+#include "library/merge_sort.h"
+#include "library/quick_sort.h"
+#include "library/radix_sort.h"
+#include "library/selection_sort.h"
 
-#include "library/intro_sort.cpp"
+#include "library/intro_sort.h"
 
 typedef uint32_t key_type;
 
@@ -78,9 +78,9 @@ void input() {
     }
     printf("M> ");
     std::cin >> M;
-    if (M > 100) {
-        M = 100;
-        printf("M is too big, so M has been set to 100.\n");
+    if (M > 1000) {
+        M = 1000;
+        printf("M is too big, so M has been set to 1000.\n");
         fflush(stdout);
     }
     if (M < 1) {
@@ -307,7 +307,8 @@ int main() {
                 else data[cur][i] = -1;
             }
             cur++;
-
+            
+            // 一周終わり
             fprintf(stderr, "\033[K\033[1A");
         }
     }

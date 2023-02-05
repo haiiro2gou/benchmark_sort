@@ -10,7 +10,8 @@
                 "${file}",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}.out",
-                "-Ofast"
+                "-O3",
+                "-march=native"
             ],
             "options": {
                 "cwd": "${fileDirname}"
