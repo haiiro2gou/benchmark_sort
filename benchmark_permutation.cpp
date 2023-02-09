@@ -5,6 +5,7 @@
 #include <string>
 
 #include "library/csv_ctrl.h"
+#include "library/deviation.h"
 #include "library/sort_launch.h"
 
 int N, M;
@@ -37,14 +38,17 @@ int main() {
     using namespace std;
     // 設定部
     input();
-    string temp_path = "./temp/permutation.csv";
+    string temp_path = "./temp/permutation/.csv";
+    string temp_result_path = "./temp/permutation/result.csv";
 
     // 前処理
     vector<double> data;
+    vector<vector<double>> deviation_base;
 
     // csvの先頭から情報を取得していたら途中から
     bool check_temp = false;
     csv temp = csv_read(temp_path);
+    temp.resize(3);
     if (!temp.empty()) if (!temp[0].empty()) if (temp[0][0] == N) check_temp = true;
 
     // 計測開始
@@ -52,14 +56,15 @@ int main() {
     
     // 本処理
     vector<val_t> base(N);
-    int cur = 0;
+    const int soft_cap = max(M / 10, 1000);
     if (!check_temp) {
-        remove(temp_path.c_str());
-        csv id = {{double(N)}};
-        csv_write(id, temp_path);
+        temp[0] = {double(N), 0};
     }
+    int cnt = 0;
 
-    while (cur < M) {
+    bool init = true;
+    fstream fs;
+    while (temp[0][1] < M) {
         // データ生成
         random_device get_rand_dev;
         mt19937 get_rand_mt(get_rand_dev());
@@ -72,34 +77,83 @@ int main() {
         // ソート処理
         data = sort_launch(base);
 
-        // データ記録
-        csv output = csv_read(temp_path);
+        // 平均値更新
+        if (temp[1].empty()) {
+            temp[1] = data;
+        }
+        else if (!init) for (int i = 0; i < 10; i++) {
+            temp[1][i] = ((temp[1][i] * temp[0][1]) + data[i]) / (temp[0][1] + 1);
+        }
 
-        // 外れ値チェック
-        // 四分位偏差を使うことにする
+        if (init) {
+            // 標準偏差初期化
+            if (cnt >= soft_cap) {
+                vector<double> deviation(10);
+                for (int i = 0; i < 10; i++) {
+                    vector<double> base(soft_cap);
+                    for (int j = 0; j < soft_cap; j++) {
+                        base[j] = deviation_base[j][i];
+                    }
+                    deviation[i] = get_deviation(base);
+                }
+                temp[2] = deviation;
 
-        if (output.size() == 1) {
-            output[0].emplace_back(cur);
-            output.emplace_back(data);
+                // フラグ折り
+                init = false;
+            }
+            else {
+                deviation_base.push_back(data);
+            }
         }
         else {
-            int size = int(output[0][1]);
-            for (int j = 0; j < 10; j++) {
-                output[1][j] = ((output[1][j] * size) + data[j]) / (size + 1.0);
+            // 外れ値チェック
+            for (int i = 0; i < 10; i++) {
+                if (abs(data[i] - temp[1][i]) > 3 * temp[2][i]) {
+                    string sample = "";
+                    for (int j = 0; j < N; i++) {
+                        stringstream ss;
+                        ss << hex << base[j];
+                        sample += ss.str();
+                    }
+                    string output = sample + ',' + to_string(i) + ',' + to_string(data[i]) + '\n';
+                    fs.open(temp_result_path, ios_base::app);
+                    if (fs.is_open()) {
+                        fs.write(output.c_str(), output.length());
+                    }
+                }
             }
-            size++;
-            output[0][1] = size;
         }
-        csv_write(output, temp_path);
 
         // ループ用
-        cur++;
+        if (cnt >= soft_cap) temp[0][1]++;
+        else cnt++;
+
+        // 進捗バー1
+        if (init) {
+            string progress1 = "";
+            for (int i = 0; i < 30; i++) {
+                if (cnt * 30 >= soft_cap * i) progress1 += "#";
+            }
+            fprintf(stderr, "\033[2A\r\033[0K1. Initializing\n");
+            fprintf(stderr, "\033[0K[%-30s] %6.2lf%% (%d/%d)\n", progress1.c_str(), 100.0*cnt/soft_cap, cnt, soft_cap);
+        }
+        // 進捗バー2
+        string progress2 = "";
+        for (int i = 0; i < 30; i++) {
+            if (temp[0][1] * 30 >= M * i) progress2 += '#';
+        }
+        fprintf(stderr, "2. Sorting\n");
+        fprintf(stderr, "[%-30s] %6.2lf%% (%d/%d)\033[1A\r", progress2.c_str(), 100.0*temp[0][1]/M, int(temp[0][1]), M);
+
+        // バックアップ用書き込み
+        csv_write(temp, temp_path);
+
     }
 
     // 計測終了
     chrono::system_clock::time_point all_end = chrono::system_clock::now();
     int all_estimated = static_cast<int>(chrono::duration_cast<chrono::milliseconds>(all_end-all_start).count()/1000.0);
-    fprintf(stderr,"\033[Kfinish! (");
+    fprintf(stderr,"\033[2Bfinish! (");
     if (all_estimated/(24*60*60)) fprintf(stderr, "%dd %02dh %02dm %02ds", all_estimated/(24*60*60), all_estimated/(60*60)%24, all_estimated/60%60, all_estimated%60);
     else if (all_estimated/(60*60)) fprintf(stderr, "%dh %02dm %02ds", all_estimated/(60*60)%24, all_estimated/60%60, all_estimated%60);
     else if (all_estimated/60) fprintf(stderr, "%dm %02ds", all_estimated/60%60, all_estimated%60);
@@ -108,7 +162,9 @@ int main() {
     fprintf(stderr, ")\n");
 
     // 最終記録
-    csv_write(csv_read(temp_path), "./result/permutation.csv");
     remove(temp_path.c_str());
+    csv result = csv_read(temp_result_path);
+    csv_write(result, "./result/permutation.csv");
+    remove(temp_result_path.c_str());
     return 0;
 }
