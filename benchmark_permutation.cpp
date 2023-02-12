@@ -63,6 +63,7 @@ int main() {
     int cnt = 0;
 
     bool init = true;
+    bool init_during = true;
     fstream fs;
     while (temp[0][1] < M) {
         // データ生成
@@ -125,7 +126,6 @@ int main() {
             }
         }
         
-
         // ループ用
         if (cnt >= soft_cap) temp[0][1]++;
         else cnt++;
@@ -139,6 +139,7 @@ int main() {
             fprintf(stderr, "\r\033[0K1. Initializing\n");
             fprintf(stderr, "\r\033[0K[%-30s] %6.2lf%% (%d/%d)\n", progress1.c_str(), 100.0*cnt/soft_cap, cnt, soft_cap);
         }
+
         // 進捗バー2
         else {
             string progress2 = "";
@@ -153,7 +154,7 @@ int main() {
         for (int i = 0; i < 2; i++) fprintf(stderr, "\r\033[1A");
 
         // バックアップ用書き込み
-        if (cnt % 1000 == 0) csv_write(convert_string(temp), temp_path);
+        if (int(temp[0][1]) % 1000 == 0) csv_write(convert_string(temp), temp_path);
     }
 
     // 計測終了
@@ -169,11 +170,6 @@ int main() {
 
     // 最終記録
     csv result = csv_read(temp_result_path);
-    for (auto array : result) {
-        for (int i = 0; i < array.size(); i++) {
-            cout << array[i] << (i < array.size() - 1 ? ',' : '\n');
-        }
-    }
     csv_write(result, "./result/permutation.csv");
 
     // 削除
