@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <chrono>
+#include <iomanip>
 #include <iostream>
 #include <random>
 #include <string>
@@ -15,9 +16,9 @@ void input() {
 
     fprintf(stderr, "N> ");
     std::cin >> N;
-    if (N > 16) {
-        N = 16;
-        fprintf(stderr, "N is too big, so N has been set to 16.\n");
+    if (N > 256) {
+        N = 256;
+        fprintf(stderr, "N is too big, so N has been set to 256.\n");
     }
     if (N < 1) {
         N = 1;
@@ -42,12 +43,11 @@ int main() {
     string temp_result_path = "./temp/permutation/result.csv";
 
     // 前処理
-    vector<double> data;
     vector<vector<double>> deviation_base;
 
     // csvの先頭から情報を取得していたら途中から
     bool check_temp = false;
-    csv temp = csv_read(temp_path);
+    csv_double temp = convert_double(csv_read(temp_path));
     temp.resize(3);
     if (!temp.empty()) if (!temp[0].empty()) if (temp[0][0] == N) check_temp = true;
 
@@ -75,7 +75,7 @@ int main() {
         shuffle(base.begin(), base.end(), get_rand_mt);
 
         // ソート処理
-        data = sort_launch(base);
+        vector<double> data = sort_launch(base);
 
         // 平均値更新
         if (temp[1].empty()) {
@@ -109,20 +109,22 @@ int main() {
             // 外れ値チェック
             for (int i = 0; i < 10; i++) {
                 if (abs(data[i] - temp[1][i]) > 3 * temp[2][i]) {
-                    string sample = "";
-                    for (int j = 0; j < N; i++) {
-                        stringstream ss;
-                        ss << hex << base[j];
-                        sample += ss.str();
+                    string sample = "0x";
+                    stringstream ss;
+                    for (int i = 0; i < N; i++) {
+                        ss << setw(2) << setfill('0') << hex << base[i].key;
                     }
+                    sample += ss.str();
                     string output = sample + ',' + to_string(i) + ',' + to_string(data[i]) + '\n';
                     fs.open(temp_result_path, ios_base::app);
                     if (fs.is_open()) {
                         fs.write(output.c_str(), output.length());
                     }
+                    fs.close();
                 }
             }
         }
+        
 
         // ループ用
         if (cnt >= soft_cap) temp[0][1]++;
@@ -134,20 +136,24 @@ int main() {
             for (int i = 0; i < 30; i++) {
                 if (cnt * 30 >= soft_cap * i) progress1 += "#";
             }
-            fprintf(stderr, "\033[2A\r\033[0K1. Initializing\n");
-            fprintf(stderr, "\033[0K[%-30s] %6.2lf%% (%d/%d)\n", progress1.c_str(), 100.0*cnt/soft_cap, cnt, soft_cap);
+            fprintf(stderr, "\r\033[0K1. Initializing\n");
+            fprintf(stderr, "\r\033[0K[%-30s] %6.2lf%% (%d/%d)\n", progress1.c_str(), 100.0*cnt/soft_cap, cnt, soft_cap);
         }
         // 進捗バー2
-        string progress2 = "";
-        for (int i = 0; i < 30; i++) {
-            if (temp[0][1] * 30 >= M * i) progress2 += '#';
+        else {
+            string progress2 = "";
+            for (int i = 0; i < 30; i++) {
+                if (temp[0][1] * 30 >= M * i) progress2 += '#';
+            }
+            fprintf(stderr, "\r\033[0K2. Sorting\n");
+            fprintf(stderr, "\r\033[0K[%-30s] %6.2lf%% (%d/%d)\n", progress2.c_str(), 100.0*temp[0][1]/M, int(temp[0][1]), M);
         }
-        fprintf(stderr, "2. Sorting\n");
-        fprintf(stderr, "[%-30s] %6.2lf%% (%d/%d)\033[1A\r", progress2.c_str(), 100.0*temp[0][1]/M, int(temp[0][1]), M);
+
+        // 行戻り
+        for (int i = 0; i < 2; i++) fprintf(stderr, "\r\033[1A");
 
         // バックアップ用書き込み
-        csv_write(temp, temp_path);
-
+        if (cnt % 1000 == 0) csv_write(convert_string(temp), temp_path);
     }
 
     // 計測終了
@@ -162,9 +168,17 @@ int main() {
     fprintf(stderr, ")\n");
 
     // 最終記録
-    remove(temp_path.c_str());
     csv result = csv_read(temp_result_path);
+    for (auto array : result) {
+        for (int i = 0; i < array.size(); i++) {
+            cout << array[i] << (i < array.size() - 1 ? ',' : '\n');
+        }
+    }
     csv_write(result, "./result/permutation.csv");
+
+    // 削除
+    remove(temp_path.c_str());
     remove(temp_result_path.c_str());
+
     return 0;
 }

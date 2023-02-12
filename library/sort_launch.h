@@ -49,7 +49,7 @@ vector<double> sort_launch(vector<val_t> base) {
     vector<double> estimated(10);
     bool suc;
     vector<val_t> sorted = base;
-    sort(base.begin(), base.end(), cmp_t());
+    sort(sorted.begin(), sorted.end(), cmp_t());
 
     for (int i = 0; i < 10; i++) {
         // 例外処理(低速化回避)
@@ -93,7 +93,7 @@ vector<double> sort_launch(vector<val_t> base) {
                 intro_sort(vec.begin(), vec.end(), cmp_t());
                 break;
             default:
-                fprintf(stderr, "Error has occurred!\n");
+                fprintf(stderr, "\033[0KError has been occurred!: Null Pointer Exception\n");
                 break;
         }
         end = chrono::system_clock::now();
@@ -101,6 +101,9 @@ vector<double> sort_launch(vector<val_t> base) {
         suc = true;
         for (int i = 0; i < base.size(); i++) { if (vec[i].key != sorted[i].key) suc = false; }
         if (!suc) estimated[i] = -1;
+        if (!suc) {
+            fprintf(stderr, "\033[0KError has been occurred!: Sort Failure\n");
+        }
     }
 
     return estimated;
