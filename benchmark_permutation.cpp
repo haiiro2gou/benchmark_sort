@@ -1,4 +1,4 @@
-// /* benchmark_permutation
+//* benchmark_permutation.cpp
 // ランダムなデータ列を生成し、処理時間の外れ値を出力します
 // */
 

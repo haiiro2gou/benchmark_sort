@@ -1,53 +1,16 @@
-#include <chrono>
+//* benchmark_amount.cpp
+// 指定した要素数までのデータ列を生成し、処理時間の平均値を出力します
+// */
+
 #include <climits>
 #include <cmath>
-#include <fstream>
 #include <iostream>
-#include <numeric>
-#include <omp.h>
+#include <fstream>
 #include <random>
+#include <vector>
 
-#include "library/bubble_sort.h"
-#include "library/comb_sort.h"
-#include "library/heap_sort1.h"
-#include "library/insertion_sort.h"
-#include "library/merge_sort.h"
-#include "library/quick_sort.h"
-#include "library/radix_sort.h"
-#include "library/selection_sort.h"
-
-#include "library/intro_sort.h"
-
-typedef uint32_t key_type;
-
-struct val_t {
-    key_type key;
-    double data;
-};
-
-inline std::ostream& operator<<(std::ostream& os, const val_t& x)
-{
-    os << "(" << x.key << ", " << x.data << ")";
-    return os;
-}
-
-struct cmp_t : public std::binary_function<val_t,val_t,bool>
-{
-    bool operator()(const val_t& a, const val_t& b) const
-    {
-        return a.key < b.key;
-    }
-};
-
-struct get_key_t : public std::unary_function<val_t,key_type>
-{
-    key_type operator()(const val_t& x) const { return x.key; }
-};
-
-inline double round(double x, int p) {
-    int64_t xp10 = pow(10, p);
-    return double(round(x * xp10)) / xp10;
-}
+#include "library/csv_ctrl.h"
+#include "library/sort_launch.h"
 
 const int inf = INT_MAX / 2;
 
@@ -101,7 +64,7 @@ int main() {
     }
 
     // 処理部
-    vector<vector<double>> data(N*10, vector<double>(10));
+    csv_double data(N*10, vector<double>(10));
 
     chrono::system_clock::time_point all_start = chrono::system_clock::now();
 
