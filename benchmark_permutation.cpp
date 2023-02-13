@@ -1,3 +1,7 @@
+// /* benchmark_permutation
+// ランダムなデータ列を生成し、処理時間の外れ値を出力します
+// */
+
 #include <algorithm>
 #include <chrono>
 #include <iomanip>
