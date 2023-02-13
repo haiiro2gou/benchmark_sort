@@ -2,13 +2,9 @@
 // ランダムなデータ列を生成し、処理時間の外れ値を出力します
 // */
 
-#include <algorithm>
-#include <chrono>
 #include <iomanip>
 #include <iostream>
-#include <omp.h>
 #include <random>
-#include <string>
 
 #include "library/csv_ctrl.h"
 #include "library/deviation.h"
