@@ -16,9 +16,9 @@ void input() {
 
     fprintf(stderr, "N> ");
     std::cin >> N;
-    if (N > 256) {
-        N = 256;
-        fprintf(stderr, "N is too big, so N has been set to 256.\n");
+    if (N > 65536) {
+        N = 65536;
+        fprintf(stderr, "N is too big, so N has been set to 65536.\n");
     }
     if (N < 1) {
         N = 1;
@@ -59,6 +59,7 @@ int main() {
     const int soft_cap = max(M / 10, 1000);
     if (!check_temp) {
         temp[0] = {double(N), 0};
+        remove(temp_result_path.c_str());
     }
     int cnt = 0;
 
@@ -79,28 +80,32 @@ int main() {
         vector<double> data = sort_launch(base);
 
         // 平均値更新
+        /*
         if (temp[1].empty()) {
             temp[1] = data;
         }
         else if (!init) for (int i = 0; i < 10; i++) {
             temp[1][i] = ((temp[1][i] * temp[0][1]) + data[i]) / (temp[0][1] + 1);
         }
+        */
 
         if (init) {
             // 標準偏差初期化
             if (cnt >= soft_cap) {
                 vector<double> deviation(10);
+                temp[1].resize(10);
                 for (int i = 0; i < 10; i++) {
                     vector<double> base(soft_cap);
                     for (int j = 0; j < soft_cap; j++) {
                         base[j] = deviation_base[j][i];
                     }
+                    temp[1][i] = get_mean(base);
                     deviation[i] = get_deviation(base);
                 }
                 temp[2] = deviation;
 
                 // フラグ折り
-                init = false;
+                init = false; 
             }
             else {
                 deviation_base.push_back(data);
@@ -109,11 +114,11 @@ int main() {
         else {
             // 外れ値チェック
             for (int i = 0; i < 10; i++) {
-                if (abs(data[i] - temp[1][i]) > 3 * temp[2][i]) {
+                if (abs(data[i] - temp[1][i]) > 10 * temp[2][i]) {
                     string sample = "0x";
                     stringstream ss;
                     for (int i = 0; i < N; i++) {
-                        ss << setw(2) << setfill('0') << hex << base[i].key;
+                        ss << setw(4) << setfill('0') << hex << base[i].key;
                     }
                     sample += ss.str();
                     string output = sample + ',' + to_string(i) + ',' + to_string(data[i]) + '\n';
@@ -154,7 +159,7 @@ int main() {
         for (int i = 0; i < 2; i++) fprintf(stderr, "\r\033[1A");
 
         // バックアップ用書き込み
-        if (int(temp[0][1]) % 1000 == 0) csv_write(convert_string(temp), temp_path);
+        if (int(temp[0][1]) % 100 == 1) csv_write(convert_string(temp), temp_path);
     }
 
     // 計測終了
