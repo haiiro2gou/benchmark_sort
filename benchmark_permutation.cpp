@@ -6,6 +6,7 @@
 #include <chrono>
 #include <iomanip>
 #include <iostream>
+#include <omp.h>
 #include <random>
 #include <string>
 
@@ -46,9 +47,6 @@ int main() {
     string temp_path = "./temp/permutation/.csv";
     string temp_result_path = "./temp/permutation/result.csv";
 
-    // 前処理
-    vector<vector<double>> deviation_base;
-
     // csvの先頭から情報を取得していたら途中から
     bool check_temp = false;
     csv_double temp = convert_double(csv_read(temp_path));
@@ -60,13 +58,13 @@ int main() {
     
     // 本処理
     vector<val_t> base(N);
-    const int soft_cap = max(M / 10, 1000);
+    csv_double deviation_base;
     if (!check_temp) {
         temp[0] = {double(N), 0};
         remove(temp_result_path.c_str());
     }
+    const int soft_cap = max(M / 10, 1000);
     int cnt = 0;
-
     bool init = true;
     bool init_during = true;
     fstream fs;
