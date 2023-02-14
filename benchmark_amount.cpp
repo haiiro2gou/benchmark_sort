@@ -26,25 +26,25 @@ std::vector<val_t> get_rand_vector(int size, int limit = inf) {
 
 int N, M;
 void input() {
-    fprintf(stderr, "N> ");
+    fprintf(stderr, "\r\033[0KN> ");
     std::cin >> N;
     if (N > 7) {
         N = 7;
-        fprintf(stderr, "N is too big, so N has been set to 7.\n");
+        fprintf(stderr, "\r\033[0KN is too big, so N has been set to 7.\n");
     }
     if (N < 1) {
         N = 1;
-        fprintf(stderr, "N is too small, so N has been set to 1.\n");
+        fprintf(stderr, "\r\033[0KN is too small, so N has been set to 1.\n");
     }
-    fprintf(stderr, "M> ");
+    fprintf(stderr, "\r\033[0KM> ");
     std::cin >> M;
     if (M > 1000) {
         M = 1000;
-        fprintf(stderr, "M is too big, so M has been set to 1000.\n");
+        fprintf(stderr, "\r\033[0KM is too big, so M has been set to 1000.\n");
     }
     if (M < 1) {
         M = 1;
-        fprintf(stderr, "M is too small, so M has been set to 1.\n");
+        fprintf(stderr, "\r\033[0KM is too small, so M has been set to 1.\n");
     }
 }
 
