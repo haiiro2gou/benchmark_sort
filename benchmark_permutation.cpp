@@ -8,6 +8,7 @@
 
 #include "library/csv_ctrl.h"
 #include "library/deviation.h"
+#include "library/progress_bar.h"
 #include "library/sort_launch.h"
 
 int N, M;
@@ -133,28 +134,10 @@ int main() {
         if (cnt >= soft_cap) temp[0][1]++;
         else cnt++;
 
-        // 進捗バー1
-        if (init) {
-            string progress1 = "";
-            for (int i = 0; i < 30; i++) {
-                if (cnt * 30 >= soft_cap * i) progress1 += "#";
-            }
-            fprintf(stderr, "\r\033[0K1. Initializing\n");
-            fprintf(stderr, "\r\033[0K[%-30s] %6.2lf%% (%d/%d)\n", progress1.c_str(), 100.0*cnt/soft_cap, cnt, soft_cap);
-        }
-
-        // 進捗バー2
-        else {
-            string progress2 = "";
-            for (int i = 0; i < 30; i++) {
-                if (temp[0][1] * 30 >= M * i) progress2 += '#';
-            }
-            fprintf(stderr, "\r\033[0K2. Sorting\n");
-            fprintf(stderr, "\r\033[0K[%-30s] %6.2lf%% (%d/%d)\n", progress2.c_str(), 100.0*temp[0][1]/M, int(temp[0][1]), M);
-        }
-
-        // 行戻り
-        for (int i = 0; i < 2; i++) fprintf(stderr, "\r\033[1A");
+        // 進捗バー改
+        view_progress_bar({ "1. init_progress", { cnt, soft_cap } }, false);
+        view_progress_bar({ "2. main_progress", { int(temp[0][1]), M } });
+        fprintf(stderr, "\r\033[2A");
 
         // バックアップ用書き込み
         if (int(temp[0][1]) % 100 == 1) csv_write(convert_string(temp), temp_path);
