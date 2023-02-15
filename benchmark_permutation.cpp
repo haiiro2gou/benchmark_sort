@@ -155,7 +155,9 @@ int main() {
     fprintf(stderr, ")\n");
 
     // 最終記録
-    csv result = csv_read(temp_result_path);
+    csv result = csv_read(temp_path);
+    csv get_result = csv_read(temp_result_path);
+    result.insert(result.end(), get_result.begin(), get_result.end());
     csv_write(result, "./result/permutation.csv");
 
     // 削除
