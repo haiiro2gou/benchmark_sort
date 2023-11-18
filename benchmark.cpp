@@ -147,7 +147,7 @@ int main() {
         bar_delete();
         chrono::system_clock::time_point gen_end = chrono::system_clock::now();
 
-        fprintf(stderr, "Data generation has completed! (Elapsed: %s)\n", time_elapsed(gen_start, gen_end).c_str());
+        fprintf(stderr, "\r\033[1A\r\033[0KData generation has completed! (Elapsed: %s)\n", time_elapsed(gen_start, gen_end).c_str());
     }
 
     // main phase
