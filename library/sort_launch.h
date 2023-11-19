@@ -18,7 +18,7 @@ typedef uint32_t key_type;
 
 struct val_t {
     key_type key;
-    double data;
+    std::string data;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const val_t& x)

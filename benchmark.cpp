@@ -2,21 +2,20 @@
 // 特定の要素についてランダムなデータを生成し、ソート処理に要した時間を統計して出力する。
 // */
 
-#include <chrono>
 #include <cmath>
+#include <iomanip>
 #include <iostream>
 #include <random>
+#include <sstream>
 #include <string>
 
-typedef uint32_t key_type;
-struct val_t {
-    key_type key;
-    std::string data;
-};
+#include "library/sort_launch.h"
 
 typedef struct {
+    std::string title;
     int current;
     int max;
+    std::chrono::system_clock::time_point start;
 } prog_bar;
 
 int input(std::string name, std::string desc, int min, int max) {
@@ -49,22 +48,40 @@ std::string time_elapsed(std::chrono::system_clock::time_point start, std::chron
     return (seconds < 1 ? std::to_string(elapsed) + "ms" : (minutes < 1 ? "" : (hours < 1 ? "" : std::to_string(hours) + "h ") + std::to_string(minutes) + "m ") + std::to_string(seconds) + (minutes < 1 ? "." + std::to_string(elapsed / 100) : "") + "s");
 }
 
+std::chrono::system_clock::time_point latest;
 void bar_create(prog_bar conf) {
-    fprintf(stderr, "[..............................] 0 / %ld (0.0 %)\n", conf.max);
+    fprintf(stderr, "%s 0 / %ld (0 ms)\n[..............................] 0.0 %\n", conf.title.c_str(), conf.max);
+    latest = std::chrono::system_clock::now();
 }
 
-void bar_update(prog_bar conf) {
-    double perc = 100.0 * conf.current / conf.max;
-    std::string bar = "";
-    for (int i = 0; i < 30; i++) {
-        if (conf.current * 30 >= conf.max * (i + 1)) bar += '#';
-        else bar += '.';
+void bar_update(prog_bar conf, bool force = false) {
+    std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+    if (static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(now - latest).count()) > 200 || force) {
+        latest = std::chrono::system_clock::now();
+
+        double perc = 100.0 * conf.current / conf.max;
+        std::string bar = "";
+        for (int i = 0; i < 30; i++) {
+            if (conf.current * 30 >= conf.max * (i + 1)) bar += '#';
+            else bar += '.';
+        }
+
+        fprintf(stderr, "\r\033[1A\r\033[0K\r\033[1A\r\033[0K%s %ld / %ld (%s)\n[%s] %.1lf %\n", conf.title.c_str(), conf.current, conf.max, time_elapsed(conf.start, now).c_str(), bar.c_str(), perc);
     }
-    fprintf(stderr, "\r\033[1A\r\033[0K[%s] %ld / %ld (%.1lf %)\n", bar.c_str(), conf.current, conf.max, perc);
 }
 
 void bar_delete() {
-    fprintf(stderr, "\r\033[1A\r\033[0K");
+    fprintf(stderr, "\r\033[1A\r\033[0K\r\033[1A\r\033[0K");
+}
+
+std::vector<int> get_candidate(int digit) {
+    std::vector<int> ret(digit * 10);
+    for (int i = 0; i < digit; i++) {
+        for (int j = 1; j <= 10; j++) {
+            ret[i * 10 + j - 1] = round(pow(10, 1.0 * j / 10 + i));
+        }
+    }
+    return ret;
 }
 
 const int inf = INT_MAX / 2;
@@ -76,7 +93,7 @@ int main() {
     fprintf(stderr, "\n");
 
     // input phase
-    int n, size; string type;
+    int n, size, a; string type;
     {
         bool ipcheck = false;
         while (!ipcheck) {
@@ -89,68 +106,83 @@ int main() {
                 size = pow(10, S);
             }
             else size = 1000;
+            int A = input("Multiplier", "Determines the number of attempts.", 0, 4);
+            a = pow(10, A);
             
             fprintf(stderr, "Your input was...\n");
             fprintf(stderr, "Type: %s\n", type.c_str());
             fprintf(stderr, "Elements: %ld\n", n);
             if (T == 2) fprintf(stderr, "Size: %ld\n", size);
+            fprintf(stderr, "Attempts: %ld\n", a);
 
             ipcheck = input("Check", "Is this input correct? (Yes: 1 / No: 0)", 0, 1);
 
             if (!ipcheck) {
-                fprintf(stderr, "\r\033[1A\r\033[0K\r\033[1A\r\033[0K\r\033[1A\r\033[0K");
+                fprintf(stderr, "\r\033[1A\r\033[0K\r\033[1A\r\033[0K\r\033[1A\r\033[0K\r\033[1A\r\033[0K");
                 if (T == 2) fprintf(stderr, "\r\033[1A\r\033[0K");
             }
             else fprintf(stderr, "\n");
         }
     }
 
-    chrono::system_clock::time_point proc_start = chrono::system_clock::now();
-
-    // data creation phase
-    vector<val_t> list(n);
+    // main phase
     {
-        fprintf(stderr, "Data generation has started...\n");
-        
-        chrono::system_clock::time_point gen_start = chrono::system_clock::now();
-        string abc = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        prog_bar gen_1 = {0, n};
-        bar_create(gen_1);
-        chrono::system_clock::time_point gen_1_cp = gen_start;
-        for (int i = 0; i < n; i++) {
-            gen_1.current++;
-            chrono::system_clock::time_point gen_1_now = chrono::system_clock::now();
-            if (static_cast<int>(chrono::duration_cast<chrono::milliseconds>(gen_1_now - gen_1_cp).count() / 200.0)) {
-                bar_update(gen_1);
-                gen_1_cp = gen_1_now;
-            }
-            prog_bar gen_2 = {0, size};
-            bar_create(gen_2);
-            chrono::system_clock::time_point gen_2_cp = gen_1_now;
+        fprintf(stderr, "Main Process has started...\n");
 
-            random_device seed_gen;
-            mt19937 engine(seed_gen());
-            list[i].key = engine() % inf;
-            list[i].data = "";
-            for (int j = 0; j < size; j++) {
-                gen_2.current++;
-                chrono::system_clock::time_point gen_2_now = chrono::system_clock::now();
-                if (static_cast<int>(chrono::duration_cast<chrono::milliseconds>(gen_2_now - gen_2_cp).count() / 200.0)) {
-                    bar_update(gen_2);
-                    gen_2_cp = gen_2_now;
+        const std::string abc = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        random_device seed_gen;
+
+        chrono::system_clock::time_point main_start = chrono::system_clock::now();
+        vector<int> target = get_candidate(round(log10(type == "Number" ? n : size)));
+        vector<vector<vector<double>>> result(target.size(), vector<vector<double>>(a, vector<double>(10)));
+        int marker = 0;
+
+        auto main_st = chrono::system_clock::now();
+        prog_bar main = {"Main Loop", 0, (type == "Number" ? n : size), main_st};
+        bar_create(main);
+        for (auto &t : target) {
+            main.current = t;
+            bar_update(main, true);
+
+            prog_bar l1 = {"Attempts", 0, a, chrono::system_clock::now()};
+            bar_create(l1);
+            for (int i = 0; i < a; i++) {
+                l1.current++;
+                bar_update(l1, true);
+
+                // main sort phase
+                vector<val_t> list((type == "Number" ? t : n));
+                prog_bar gen = {"Randomizer", 0, (type == "Number" ? t : n), chrono::system_clock::now()};
+                bar_create(gen);
+                for (int g1 = 0; g1 < (type == "Number" ? t : n); g1++) {
+                    gen.current++;
+                    bar_update(gen);
+
+                    mt19937 engine(seed_gen());
+                    list[i].key = engine() % inf;
+                    list[i].data = "";
+                    for (int g2 = 0; g2 < (type == "Number" ? size : t); g2++) {
+                        list[i].data += abc[engine() % 52];
+                    }
                 }
+                bar_delete();
 
-                list[i].data += abc[engine() % 52];
+                result[marker][i] = sort_launch(list);
             }
             bar_delete();
+
+            marker++;
         }
         bar_delete();
-        chrono::system_clock::time_point gen_end = chrono::system_clock::now();
+        chrono::system_clock::time_point main_end = chrono::system_clock::now();
 
-        fprintf(stderr, "\r\033[1A\r\033[0KData generation has completed! (Elapsed: %s)\n", time_elapsed(gen_start, gen_end).c_str());
+        fprintf(stderr, "\r\033[1A\r\033[0KMain Process has completed! (Elapsed: %s)\n", time_elapsed(main_start, main_end).c_str());
     }
 
-    // main phase
+    // output phase
+    {
+        fprintf(stderr, "Benchmark results are now being exported.\n");
+    }
 
     return 0;
 }
