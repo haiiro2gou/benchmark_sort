@@ -195,7 +195,7 @@ int main() {
         int c = round(log10((type == "number" ? n : size))) * 10;
         string path = "./result/" + type + "_";
         for (int i = 0; i < c; i++) {
-            string path = "./result" + type + "_" + to_string((int) round(pow(10, 0.1 * i))) + ".csv";
+            string path = "./result/" + type + "/" + to_string((int) round(pow(10, 0.1 * (i + 1)))) + ".csv";
             ofstream ofs(path);
             if (ofs) {
                 for (int j = 0; j < a; j++) {
