@@ -2,7 +2,9 @@
 // 特定の要素についてランダムなデータを生成し、ソート処理に要した時間を統計して出力する。
 // */
 
+#include <cctype>
 #include <cmath>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <random>
@@ -17,6 +19,12 @@ typedef struct {
     int max;
     std::chrono::system_clock::time_point start;
 } prog_bar;
+
+struct convert {
+    unsigned char operator()(unsigned char const &c) {
+        return std::tolower(c);
+    }
+};
 
 int input(std::string name, std::string desc, int min, int max) {
     std::ios::sync_with_stdio(false);
@@ -97,8 +105,8 @@ int main() {
     {
         bool ipcheck = false;
         while (!ipcheck) {
-            int T = input("Type", "Determines the type of sorting that will take place during benchmarking (1: Number, 2: Size)", 1, 2);
-            type = (T == 1 ? "Number" : "Size");
+            int T = input("Type", "Determines the type of sorting that will take place during benchmarking (1: number, 2: Size)", 1, 2);
+            type = (T == 1 ? "number" : "size");
             int N = input("N", "Determines the number of elements to be sorted", 0, 7);
             n = pow(10, N);
             if (T == 2) {
@@ -126,6 +134,8 @@ int main() {
     }
 
     // main phase
+    vector<int> target = get_candidate(round(log10(type == "number" ? n : size)));
+    vector<vector<vector<double>>> result(target.size(), vector<vector<double>>(a, vector<double>(10)));
     {
         fprintf(stderr, "Main Process has started...\n");
 
@@ -133,12 +143,9 @@ int main() {
         random_device seed_gen;
 
         chrono::system_clock::time_point main_start = chrono::system_clock::now();
-        vector<int> target = get_candidate(round(log10(type == "Number" ? n : size)));
-        vector<vector<vector<double>>> result(target.size(), vector<vector<double>>(a, vector<double>(10)));
         int marker = 0;
 
-        auto main_st = chrono::system_clock::now();
-        prog_bar main = {"Main Loop", 0, (type == "Number" ? n : size), main_st};
+        prog_bar main = {"Main Loop", 0, (type == "number" ? n : size), chrono::system_clock::now()};
         bar_create(main);
         for (auto &t : target) {
             main.current = t;
@@ -151,17 +158,17 @@ int main() {
                 bar_update(l1, true);
 
                 // main sort phase
-                vector<val_t> list((type == "Number" ? t : n));
-                prog_bar gen = {"Randomizer", 0, (type == "Number" ? t : n), chrono::system_clock::now()};
+                vector<val_t> list((type == "number" ? t : n));
+                prog_bar gen = {"Randomizer", 0, (type == "number" ? t : n), chrono::system_clock::now()};
                 bar_create(gen);
-                for (int g1 = 0; g1 < (type == "Number" ? t : n); g1++) {
+                for (int g1 = 0; g1 < (type == "number" ? t : n); g1++) {
                     gen.current++;
                     bar_update(gen);
 
                     mt19937 engine(seed_gen());
                     list[i].key = engine() % inf;
                     list[i].data = "";
-                    for (int g2 = 0; g2 < (type == "Number" ? size : t); g2++) {
+                    for (int g2 = 0; g2 < (type == "number" ? size : t); g2++) {
                         list[i].data += abc[engine() % 52];
                     }
                 }
@@ -182,6 +189,24 @@ int main() {
     // output phase
     {
         fprintf(stderr, "Benchmark results are now being exported.\n");
+
+        chrono::system_clock::time_point output_start = chrono::system_clock::now();
+        
+        int c = round(log10((type == "number" ? n : size))) * 10;
+        string path = "./result/" + type + "_";
+        for (int i = 0; i < c; i++) {
+            string path = "./result" + type + "_" + to_string((int) round(pow(10, 0.1 * i))) + ".csv";
+            ofstream ofs(path);
+            if (ofs) {
+                for (int j = 0; j < a; j++) {
+                    for (int k = 0; k < 10; k++) ofs << result[i][j][k] << (k < 9 ? ',' : '\n');
+                }
+            }
+        }
+
+        chrono::system_clock::time_point output_end = chrono::system_clock::now();
+
+        fprintf(stderr, "\r\033[1A\r\033[0KBenchmark results have been exported. (Elapsed: %s)\n", time_elapsed(output_start, output_end).c_str());
     }
 
     return 0;
