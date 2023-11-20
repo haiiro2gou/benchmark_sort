@@ -2,13 +2,10 @@
 // 特定の要素についてランダムなデータを生成し、ソート処理に要した時間を統計して出力する。
 // */
 
-#include <cctype>
 #include <cmath>
 #include <fstream>
-#include <iomanip>
 #include <iostream>
 #include <random>
-#include <sstream>
 #include <string>
 
 #include "library/sort_launch.h"
@@ -19,12 +16,6 @@ typedef struct {
     int max;
     std::chrono::system_clock::time_point start;
 } prog_bar;
-
-struct convert {
-    unsigned char operator()(unsigned char const &c) {
-        return std::tolower(c);
-    }
-};
 
 int input(std::string name, std::string desc, int min, int max) {
     std::ios::sync_with_stdio(false);
