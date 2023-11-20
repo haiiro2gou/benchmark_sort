@@ -52,7 +52,7 @@ std::string time_elapsed(std::chrono::system_clock::time_point start, std::chron
 
 std::chrono::system_clock::time_point latest;
 void bar_create(prog_bar conf) {
-    fprintf(stderr, "%s 0 / %ld (0 ms)\n[..............................] 0.0 %\n", conf.title.c_str(), conf.max);
+    fprintf(stderr, "%s 0 / %ld (0ms)\n[..............................] 0.0 %\n", conf.title.c_str(), conf.max);
     latest = std::chrono::system_clock::now();
 }
 
@@ -76,9 +76,9 @@ void bar_delete() {
     fprintf(stderr, "\r\033[1A\r\033[0K\r\033[1A\r\033[0K");
 }
 
-std::vector<int> get_candidate(int digit) {
-    std::vector<int> ret(digit * 10);
-    for (int i = 0; i < digit; i++) {
+std::vector<int> get_candidate(int start, int end) {
+    std::vector<int> ret((end - start) * 10);
+    for (int i = start; i < end; i++) {
         for (int j = 1; j <= 10; j++) {
             ret[i * 10 + j - 1] = round(pow(10, 1.0 * j / 10 + i));
         }
@@ -90,7 +90,7 @@ const int inf = INT_MAX / 2;
 int main() {
     using namespace std;
 
-    fprintf(stderr, "Sort Bench v0.2.0-beta\n");
+    fprintf(stderr, "Sort Bench v0.2.1\n");
     fprintf(stderr, "Made by @haiiro2gou\n");
     fprintf(stderr, "\n");
 
@@ -102,7 +102,7 @@ int main() {
             int T = input("Type", "Determines the type of sorting that will take place during benchmarking (1: Element, 2: Size)", 1, 2);
             type = (T == 1 ? "element" : "size");
             if (T == 1) {
-                int N = input("N", "Determines the number of elements to be sorted", 0, 7);
+                int N = input("N", "Determines the number of elements to be sorted", 1, 7);
                 n = pow(10, N);
                 size = 1000;
             }
@@ -131,7 +131,7 @@ int main() {
     }
 
     // main phase
-    vector<int> target = get_candidate(round(log10(type == "element" ? n : size)));
+    vector<int> target = get_candidate(0, round(log10(type == "element" ? n : size)));
     vector<vector<vector<double>>> result(target.size(), vector<vector<double>>(a, vector<double>(10)));
     {
         fprintf(stderr, "Main Process has started...\n");
@@ -141,12 +141,15 @@ int main() {
 
         chrono::system_clock::time_point main_start = chrono::system_clock::now();
         int marker = 0;
+        vector<val_t> list(n);
 
         prog_bar main = {"Main Loop", 0, (type == "element" ? n : size), chrono::system_clock::now()};
         bar_create(main);
         for (auto &t : target) {
             main.current = t;
             bar_update(main, true);
+
+            list.resize(t);
 
             prog_bar l1 = {"Attempts", 0, a, chrono::system_clock::now()};
             bar_create(l1);
@@ -155,7 +158,6 @@ int main() {
                 bar_update(l1, true);
 
                 // main sort phase
-                vector<val_t> list((type == "element" ? t : n));
                 prog_bar gen = {"Randomizer", 0, (type == "element" ? t : n), chrono::system_clock::now()};
                 bar_create(gen);
                 for (int g1 = 0; g1 < (type == "element" ? t : n); g1++) {
