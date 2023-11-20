@@ -37,14 +37,17 @@ int input(std::string name, std::string desc, int min, int max) {
 }
 
 std::string time_elapsed(std::chrono::system_clock::time_point start, std::chrono::system_clock::time_point end) {
-    int elapsed = static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
-    int seconds = elapsed / 1000;
-    int minutes = seconds / 60;
-    int hours = minutes / 60;
-    elapsed %= 1000;
-    seconds %= 60;
-    minutes %= 60;
-    return (seconds < 1 ? std::to_string(elapsed) + "ms" : (minutes < 1 ? "" : (hours < 1 ? "" : std::to_string(hours) + "h ") + std::to_string(minutes) + "m ") + std::to_string(seconds) + (minutes < 1 ? "." + std::to_string(elapsed / 100) : "") + "s");
+    int milli_second = static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
+    int second = milli_second / 1000; milli_second %= 1000;
+    int minute = second / 60; second %= 60;
+    int hour = minute / 60; minute %= 60;
+    std::string ret = "";
+    if (hour) ret += to_string(hour) + "h ";
+    if (minute || hour) ret += to_string(minute) + "m ";
+    if (second && (minute || hour)) ret += to_string(second) + "s";
+    if (second && !(minute || hour)) ret += to_string(second) + "." + to_string(milli_second / 100) + "s";
+    if (!(second || minute || hour)) ret += to_string(milli_second) + "ms";
+    return ret;
 }
 
 std::chrono::system_clock::time_point latest;
