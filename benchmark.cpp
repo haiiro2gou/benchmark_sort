@@ -96,22 +96,25 @@ int main() {
     {
         bool ipcheck = false;
         while (!ipcheck) {
-            int T = input("Type", "Determines the type of sorting that will take place during benchmarking (1: number, 2: Size)", 1, 2);
-            type = (T == 1 ? "number" : "size");
-            int N = input("N", "Determines the number of elements to be sorted", 0, 7);
-            n = pow(10, N);
+            int T = input("Type", "Determines the type of sorting that will take place during benchmarking (1: Element, 2: Size)", 1, 2);
+            type = (T == 1 ? "element" : "size");
+            if (T == 1) {
+                int N = input("N", "Determines the number of elements to be sorted", 0, 7);
+                n = pow(10, N);
+                size = 1000;
+            }
             if (T == 2) {
+                n = 1000;
                 int S = input("Size", "Specifies the size of the data to be sorted", 1, 7);
                 size = pow(10, S);
             }
-            else size = 1000;
             int A = input("Multiplier", "Determines the number of attempts.", 0, 4);
             a = pow(10, A);
             
             fprintf(stderr, "Your input was...\n");
             fprintf(stderr, "Type: %s\n", type.c_str());
             fprintf(stderr, "Elements: %ld\n", n);
-            if (T == 2) fprintf(stderr, "Size: %ld\n", size);
+            fprintf(stderr, "Size: %ld\n", size);
             fprintf(stderr, "Attempts: %ld\n", a);
 
             ipcheck = input("Check", "Is this input correct? (Yes: 1 / No: 0)", 0, 1);
@@ -125,7 +128,7 @@ int main() {
     }
 
     // main phase
-    vector<int> target = get_candidate(round(log10(type == "number" ? n : size)));
+    vector<int> target = get_candidate(round(log10(type == "element" ? n : size)));
     vector<vector<vector<double>>> result(target.size(), vector<vector<double>>(a, vector<double>(10)));
     {
         fprintf(stderr, "Main Process has started...\n");
@@ -136,7 +139,7 @@ int main() {
         chrono::system_clock::time_point main_start = chrono::system_clock::now();
         int marker = 0;
 
-        prog_bar main = {"Main Loop", 0, (type == "number" ? n : size), chrono::system_clock::now()};
+        prog_bar main = {"Main Loop", 0, (type == "element" ? n : size), chrono::system_clock::now()};
         bar_create(main);
         for (auto &t : target) {
             main.current = t;
@@ -149,17 +152,17 @@ int main() {
                 bar_update(l1, true);
 
                 // main sort phase
-                vector<val_t> list((type == "number" ? t : n));
-                prog_bar gen = {"Randomizer", 0, (type == "number" ? t : n), chrono::system_clock::now()};
+                vector<val_t> list((type == "element" ? t : n));
+                prog_bar gen = {"Randomizer", 0, (type == "element" ? t : n), chrono::system_clock::now()};
                 bar_create(gen);
-                for (int g1 = 0; g1 < (type == "number" ? t : n); g1++) {
+                for (int g1 = 0; g1 < (type == "element" ? t : n); g1++) {
                     gen.current++;
                     bar_update(gen);
 
                     mt19937 engine(seed_gen());
                     list[i].key = engine() % inf;
                     list[i].data = "";
-                    for (int g2 = 0; g2 < (type == "number" ? size : t); g2++) {
+                    for (int g2 = 0; g2 < (type == "element" ? size : t); g2++) {
                         list[i].data += abc[engine() % 52];
                     }
                 }
@@ -183,7 +186,7 @@ int main() {
 
         chrono::system_clock::time_point output_start = chrono::system_clock::now();
         
-        int c = round(log10((type == "number" ? n : size))) * 10;
+        int c = round(log10((type == "element" ? n : size))) * 10;
         string path = "./result/" + type + "_";
         for (int i = 0; i < c; i++) {
             string path = "./result/" + type + "/" + to_string((int) round(pow(10, 0.1 * (i + 1)))) + ".csv";
