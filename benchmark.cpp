@@ -44,7 +44,7 @@ std::string time_elapsed(std::chrono::system_clock::time_point start, std::chron
     std::string ret = "";
     if (hour) ret += to_string(hour) + "h ";
     if (minute || hour) ret += to_string(minute) + "m ";
-    if (second && (minute || hour)) ret += to_string(second) + "s";
+    if (second || minute || hour) ret += to_string(second) + "s";
     if (second && !(minute || hour)) ret += to_string(second) + "." + to_string(milli_second / 100) + "s";
     if (!(second || minute || hour)) ret += to_string(milli_second) + "ms";
     return ret;
