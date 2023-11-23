@@ -108,7 +108,7 @@ int main() {
     using namespace std;
 
     fprintf(stderr, "Sort Bench v0.2.5\n");
-    fprintf(stderr, "Made by @carbon-nil\n");
+    fprintf(stderr, "Made by @haiiro2gou\n");
     fprintf(stderr, "\n");
 
     // input phase
