@@ -1,6 +1,7 @@
 #ifndef csv_ctrl_h
 #define csv_ctrl_h
 
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -50,7 +51,7 @@ csv csv_read(std::string path) {
         int pos = path.rfind("/");
         if (pos != std::string::npos) {
             std::string root = path.substr(0,pos);
-            if (mkdir(root.c_str(), 0777) == 0) exists = true;
+            if (std::filesystem::create_directories(root.c_str()) == 0) exists = true;
         }
     }
 
@@ -78,7 +79,7 @@ void csv_write (csv input, std::string path, bool append = false) {
         int pos = path.rfind("/");
         if (pos != std::string::npos) {
             std::string root = path.substr(0,pos);
-            if (mkdir(root.c_str(), 0777) == 0) exists = true;
+            if (std::filesystem::create_directories(root.c_str()) == 0) exists = true;
         }
     }
 
