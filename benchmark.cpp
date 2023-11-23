@@ -3,6 +3,7 @@
 // */
 
 #include <cmath>
+#include <climits>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -69,7 +70,7 @@ std::string time_elapsed(std::chrono::system_clock::time_point start, std::chron
 
 std::chrono::system_clock::time_point latest;
 void bar_create(prog_bar conf) {
-    fprintf(stderr, "%s 0 / %ld (0ms)\n[..............................] 0.0 %\n", conf.title.c_str(), conf.max);
+    fprintf(stderr, "%s 0 / %d (0ms)\n[..............................] 0.0 %%\n", conf.title.c_str(), conf.max);
     latest = std::chrono::system_clock::now();
 }
 
@@ -85,7 +86,7 @@ void bar_update(prog_bar conf, bool force = false) {
             else bar += '.';
         }
 
-        fprintf(stderr, "\r\033[1A\r\033[0K\r\033[1A\r\033[0K%s %ld / %ld (%s)\n[%s] %.1lf %\n", conf.title.c_str(), conf.current, conf.max, time_elapsed(conf.start, now).c_str(), bar.c_str(), perc);
+        fprintf(stderr, "\r\033[1A\r\033[0K\r\033[1A\r\033[0K%s %d / %d (%s)\n[%s] %.1lf %%\n", conf.title.c_str(), conf.current, conf.max, time_elapsed(conf.start, now).c_str(), bar.c_str(), perc);
     }
 }
 
@@ -133,9 +134,9 @@ int main() {
             
             fprintf(stderr, "Your input was...\n");
             fprintf(stderr, "Type: %s\n", type.c_str());
-            fprintf(stderr, "Elements: %ld\n", n);
-            fprintf(stderr, "Size: %ld\n", size);
-            fprintf(stderr, "Attempts: %ld\n", a);
+            fprintf(stderr, "Elements: %d\n", n);
+            fprintf(stderr, "Size: %d\n", size);
+            fprintf(stderr, "Attempts: %d\n", a);
             fprintf(stderr, "\n");
 
             ipcheck = input("Check", "Is your input correct? (Yes: 1 / No: 0)", -1, 1);
