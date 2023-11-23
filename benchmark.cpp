@@ -151,7 +151,7 @@ int main() {
     }
 
     if (skip) {
-        fprintf(stderr, "Skip has been seletcted!\n");
+        fprintf(stderr, "Skip has been selected!\n");
     }
     else {
         // main phase
