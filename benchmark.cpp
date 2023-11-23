@@ -27,7 +27,7 @@ int input(std::string name, std::string desc, int min, int max) {
 
     int res;
     bool check = false;
-    fprintf(stderr, "Please input %s. (%d ~ %d)\n(%s)\n", name.c_str(), min, max, desc.c_str());
+    fprintf(stderr, "Please input '%s' (%d ~ %d)\n(%s)\n", name.c_str(), min, max, desc.c_str());
     while (!check) {
         fprintf(stderr, "\r\033[0K%s> ", name.c_str());
         std::cin >> res;
@@ -136,18 +136,15 @@ int main() {
             fprintf(stderr, "Elements: %ld\n", n);
             fprintf(stderr, "Size: %ld\n", size);
             fprintf(stderr, "Attempts: %ld\n", a);
+            fprintf(stderr, "\n");
 
-            ipcheck = input("Check", "Is this input correct? (Yes: 1 / No: 0)", -1, 1);
+            ipcheck = input("Check", "Is your input correct? (Yes: 1 / No: 0)", -1, 1);
             
             if (ipcheck == -1) {
                 skip = true;
                 ipcheck = true;
             }
-            if (!ipcheck) {
-                fprintf(stderr, "\r\033[1A\r\033[0K\r\033[1A\r\033[0K\r\033[1A\r\033[0K\r\033[1A\r\033[0K");
-                if (T == 2) fprintf(stderr, "\r\033[1A\r\033[0K");
-            }
-            else fprintf(stderr, "\n");
+            if (!ipcheck) { fprintf(stderr, "\r\033[1A\r\033[0K\r\033[1A\r\033[0K\r\033[1A\r\033[0K\r\033[1A\r\033[0K\r\033[1A\r\033[0K\r\033[1A\r\033[0K"); }
         }
     }
 
