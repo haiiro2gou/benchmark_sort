@@ -16,7 +16,7 @@ csv convert_string(csv_double base) {
     for (int i = 0; i < base.size(); i++) {
         for (auto x : base[i]) {
             char str[20];
-            std::sprintf(str, "%.9lf", x);
+            std::sprintf(str, "%6lf", x);
             res[i].push_back(str);
         }
     }

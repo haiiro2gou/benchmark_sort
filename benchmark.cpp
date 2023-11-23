@@ -9,6 +9,7 @@
 #include <numeric>
 #include <random>
 #include <string>
+#include <thread>
 
 #include "library/csv_ctrl.h"
 #include "library/sort_launch.h"
@@ -150,12 +151,15 @@ int main() {
         }
     }
 
+    vector<int> target = get_candidate(0, round(log10(type == "element" ? n : size)));
+    target.erase(std::unique(target.begin(), target.end()), target.end());
+    chrono::system_clock::time_point all_start = chrono::system_clock::now();
+
     if (skip) {
         fprintf(stderr, "Skip has been selected!\n");
     }
     else {
         // main phase
-        vector<int> target = get_candidate(0, round(log10(type == "element" ? n : size)));
         vector<vector<vector<double>>> result(target.size(), vector<vector<double>>(a, vector<double>(10)));
         {
             fprintf(stderr, "Main Process has started...\n");
@@ -216,17 +220,11 @@ int main() {
 
             chrono::system_clock::time_point output_start = chrono::system_clock::now();
             
-            int c = round(log10((type == "element" ? n : size))) * 10;
             string path = "./result/" + type + "_";
-            filesystem::remove(path.substr(0, path.size() - 1) + "/");
-            for (int i = 0; i < c; i++) {
-                string path = "./result/" + type + "/" + to_string((int) round(pow(10, 0.1 * (i + 1)))) + ".csv";
-                ofstream ofs(path);
-                if (ofs) {
-                    for (int j = 0; j < a; j++) {
-                        for (int k = 0; k < 10; k++) ofs << result[i][j][k] << (k < 9 ? ',' : '\n');
-                    }
-                }
+            filesystem::remove_all(path.substr(0, path.size() - 1) + "/");
+            for (int i = 0; i < target.size(); i++) {
+                string path = "./result/" + type + "/" + to_string(target[i]) + ".csv";
+                csv_write(convert_string(result[i]), path);
             }
 
             chrono::system_clock::time_point output_end = chrono::system_clock::now();
@@ -244,14 +242,14 @@ int main() {
         string in = "./result/" + type + "/";
         string out = "./result/" + type + ".csv";
         ofstream ofs(out);
-        vector<int> target = get_candidate(0, round(log10(type == "element" ? n : size)));
         for (int &t : target) {
+            if (t == 1) continue;
             string path = in + to_string(t) + ".csv";
             vector<vector<double>> result = convert_double(csv_read(path));
             if (ofs) {
                 for (int i = 0; i < 10; i++) {
-                    vector<double> array(a);
-                    for (int j = 0; j < a; j++) { array[j] = result[j][i]; }
+                    vector<double> array(result.size());
+                    for (int j = 0; j < result.size(); j++) { array[j] = result[j][i]; }
                     remove_outlier(array);
                     ofs << accumulate(array.begin(), array.end(), 0.0) / a << (i < 9 ? ',' : '\n');
                 }
@@ -263,7 +261,8 @@ int main() {
         fprintf(stderr, "\r\033[1A\r\033[0KData compilation has ended. (Elapsed: %s)\n", time_elapsed(zip_start, zip_end).c_str());
     }
 
-    fprintf(stderr, "All process has been completed!\n");
+    chrono::system_clock::time_point all_end = chrono::system_clock::now();
+    fprintf(stderr, "All process has been completed! (Elapsed: %s)\n", time_elapsed(all_start, all_end).c_str());
 
     return 0;
 }
