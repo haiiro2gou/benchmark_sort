@@ -107,8 +107,8 @@ const int inf = INT_MAX / 2;
 int main() {
     using namespace std;
 
-    fprintf(stderr, "Sort Bench v0.2.4\n");
-    fprintf(stderr, "Made by @haiiro2gou\n");
+    fprintf(stderr, "Sort Bench v0.2.5\n");
+    fprintf(stderr, "Made by @carbon-nil\n");
     fprintf(stderr, "\n");
 
     // input phase
