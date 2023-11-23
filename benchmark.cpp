@@ -3,11 +3,14 @@
 // */
 
 #include <cmath>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <numeric>
 #include <random>
 #include <string>
 
+#include "library/csv_ctrl.h"
 #include "library/sort_launch.h"
 
 typedef struct {
@@ -34,6 +37,19 @@ int input(std::string name, std::string desc, int min, int max) {
     }
     fprintf(stderr, "\r\033[1A\r\033[0K\r\033[1A\r\033[0K\r\033[1A\r\033[0K");
     return res;
+}
+
+void remove_outlier(vector<double> &vec) {
+    std::sort(vec.begin(), vec.end());
+    int size = vec.size();
+    double q1 = (vec[(size - 2) / 4] + vec[size / 4]) / 2.0, q3 = (vec[(3 * size - 1) / 4] + vec[(3 * size + 1) / 4]) / 2.0;
+    double q_range = q3 - q1;
+    for (int i = 0; i < size; i++) {
+        if (vec[i] < q1 - 1.5 * q_range || vec[i] > q3 + 1.5 * (q3 - q1)) {
+            vec[i] = vec.back();
+            vec.pop_back();
+        }
+    }
 }
 
 std::string time_elapsed(std::chrono::system_clock::time_point start, std::chrono::system_clock::time_point end) {
@@ -95,9 +111,9 @@ int main() {
     fprintf(stderr, "\n");
 
     // input phase
-    int n, size, a; string type;
+    int n, size, a; string type; bool skip = false;
     {
-        bool ipcheck = false;
+        int ipcheck = 0;
         while (!ipcheck) {
             int T = input("Type", "Determines the type of sorting that will take place during benchmarking (1: Element, 2: Size)", 1, 2);
             type = (T == 1 ? "element" : "size");
@@ -120,8 +136,12 @@ int main() {
             fprintf(stderr, "Size: %ld\n", size);
             fprintf(stderr, "Attempts: %ld\n", a);
 
-            ipcheck = input("Check", "Is this input correct? (Yes: 1 / No: 0)", 0, 1);
-
+            ipcheck = input("Check", "Is this input correct? (Yes: 1 / No: 0)", -1, 1);
+            
+            if (ipcheck == -1) {
+                skip = true;
+                ipcheck = true;
+            }
             if (!ipcheck) {
                 fprintf(stderr, "\r\033[1A\r\033[0K\r\033[1A\r\033[0K\r\033[1A\r\033[0K\r\033[1A\r\033[0K");
                 if (T == 2) fprintf(stderr, "\r\033[1A\r\033[0K");
@@ -130,83 +150,120 @@ int main() {
         }
     }
 
-    // main phase
-    vector<int> target = get_candidate(0, round(log10(type == "element" ? n : size)));
-    vector<vector<vector<double>>> result(target.size(), vector<vector<double>>(a, vector<double>(10)));
-    {
-        fprintf(stderr, "Main Process has started...\n");
+    if (skip) {
+        fprintf(stderr, "Skip has been seletcted!\n");
+    }
+    else {
+        // main phase
+        vector<int> target = get_candidate(0, round(log10(type == "element" ? n : size)));
+        vector<vector<vector<double>>> result(target.size(), vector<vector<double>>(a, vector<double>(10)));
+        {
+            fprintf(stderr, "Main Process has started...\n");
 
-        const std::string abc = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        random_device seed_gen;
+            const std::string abc = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            random_device seed_gen;
 
-        chrono::system_clock::time_point main_start = chrono::system_clock::now();
-        int marker = 0;
-        vector<val_t> list(n);
+            chrono::system_clock::time_point main_start = chrono::system_clock::now();
+            int marker = 0;
+            vector<val_t> list(n);
 
-        prog_bar main = {"Main Loop", 0, (type == "element" ? n : size), chrono::system_clock::now()};
-        bar_create(main);
-        for (auto &t : target) {
-            main.current = t;
-            bar_update(main, true);
+            prog_bar main = {"Main Loop", 0, (type == "element" ? n : size), chrono::system_clock::now()};
+            bar_create(main);
+            for (auto &t : target) {
+                main.current = t;
+                bar_update(main, true);
 
-            list.resize(t);
+                list.resize(t);
 
-            prog_bar l1 = {"Attempts", 0, a, chrono::system_clock::now()};
-            bar_create(l1);
-            for (int i = 0; i < a; i++) {
-                l1.current++;
-                bar_update(l1, true);
+                prog_bar l1 = {"Attempts", 0, a, chrono::system_clock::now()};
+                bar_create(l1);
+                for (int i = 0; i < a; i++) {
+                    l1.current++;
+                    bar_update(l1, true);
 
-                // main sort phase
-                prog_bar gen = {"Randomizer", 0, (type == "element" ? t : n), chrono::system_clock::now()};
-                bar_create(gen);
-                for (int g1 = 0; g1 < (type == "element" ? t : n); g1++) {
-                    gen.current++;
-                    bar_update(gen);
+                    // main sort phase
+                    prog_bar gen = {"Randomizer", 0, (type == "element" ? t : n), chrono::system_clock::now()};
+                    bar_create(gen);
+                    for (int g1 = 0; g1 < (type == "element" ? t : n); g1++) {
+                        gen.current++;
+                        bar_update(gen);
 
-                    mt19937 engine(seed_gen());
-                    list[i].key = engine() % inf;
-                    list[i].data = "";
-                    for (int g2 = 0; g2 < (type == "element" ? size : t); g2++) {
-                        list[i].data += abc[engine() % 52];
+                        mt19937 engine(seed_gen());
+                        list[i].key = engine() % inf;
+                        list[i].data = "";
+                        for (int g2 = 0; g2 < (type == "element" ? size : t); g2++) {
+                            list[i].data += abc[engine() % 52];
+                        }
                     }
+                    bar_delete();
+
+                    result[marker][i] = sort_launch(list);
                 }
                 bar_delete();
 
-                result[marker][i] = sort_launch(list);
+                marker++;
             }
             bar_delete();
+            chrono::system_clock::time_point main_end = chrono::system_clock::now();
 
-            marker++;
+            fprintf(stderr, "\r\033[1A\r\033[0KMain Process has completed! (Elapsed: %s)\n", time_elapsed(main_start, main_end).c_str());
         }
-        bar_delete();
-        chrono::system_clock::time_point main_end = chrono::system_clock::now();
 
-        fprintf(stderr, "\r\033[1A\r\033[0KMain Process has completed! (Elapsed: %s)\n", time_elapsed(main_start, main_end).c_str());
+        // output phase
+        {
+            fprintf(stderr, "Benchmark results are now being exported.\n");
+            fprintf(stderr, "Caution: If the file exists in the output area, delete the files\n");
+
+            chrono::system_clock::time_point output_start = chrono::system_clock::now();
+            
+            int c = round(log10((type == "element" ? n : size))) * 10;
+            string path = "./result/" + type + "_";
+            filesystem::remove(path.substr(0, path.size() - 1) + "/");
+            for (int i = 0; i < c; i++) {
+                string path = "./result/" + type + "/" + to_string((int) round(pow(10, 0.1 * (i + 1)))) + ".csv";
+                ofstream ofs(path);
+                if (ofs) {
+                    for (int j = 0; j < a; j++) {
+                        for (int k = 0; k < 10; k++) ofs << result[i][j][k] << (k < 9 ? ',' : '\n');
+                    }
+                }
+            }
+
+            chrono::system_clock::time_point output_end = chrono::system_clock::now();
+
+            fprintf(stderr, "\r\033[1A\r\033[0K\r\033[1A\r\033[0KBenchmark results have been exported. (Elapsed: %s)\n", time_elapsed(output_start, output_end).c_str());
+        }
     }
 
-    // output phase
+    // zip phase
     {
-        fprintf(stderr, "Benchmark results are now being exported.\n");
+        fprintf(stderr, "Output data is now being compressed.\n");
 
-        chrono::system_clock::time_point output_start = chrono::system_clock::now();
-        
-        int c = round(log10((type == "element" ? n : size))) * 10;
-        string path = "./result/" + type + "_";
-        for (int i = 0; i < c; i++) {
-            string path = "./result/" + type + "/" + to_string((int) round(pow(10, 0.1 * (i + 1)))) + ".csv";
-            ofstream ofs(path);
+        chrono::system_clock::time_point zip_start = chrono::system_clock::now();
+
+        string in = "./result/" + type + "/";
+        string out = "./result/" + type + ".csv";
+        ofstream ofs(out);
+        vector<int> target = get_candidate(0, round(log10(type == "element" ? n : size)));
+        for (int &t : target) {
+            string path = in + to_string(t) + ".csv";
+            vector<vector<double>> result = convert_double(csv_read(path));
             if (ofs) {
-                for (int j = 0; j < a; j++) {
-                    for (int k = 0; k < 10; k++) ofs << result[i][j][k] << (k < 9 ? ',' : '\n');
+                for (int i = 0; i < 10; i++) {
+                    vector<double> array(a);
+                    for (int j = 0; j < a; j++) { array[j] = result[j][i]; }
+                    remove_outlier(array);
+                    ofs << accumulate(array.begin(), array.end(), 0.0) / a << (i < 9 ? ',' : '\n');
                 }
             }
         }
 
-        chrono::system_clock::time_point output_end = chrono::system_clock::now();
+        chrono::system_clock::time_point zip_end = chrono::system_clock::now();
 
-        fprintf(stderr, "\r\033[1A\r\033[0KBenchmark results have been exported. (Elapsed: %s)\n", time_elapsed(output_start, output_end).c_str());
+        fprintf(stderr, "\r\033[1A\r\033[0KData compilation has ended. (Elapsed: %s)\n", time_elapsed(zip_start, zip_end).c_str());
     }
+
+    fprintf(stderr, "All process has been completed!\n");
 
     return 0;
 }
