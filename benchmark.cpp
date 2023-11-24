@@ -175,7 +175,7 @@ int main() {
                 main.current = t;
                 bar_update(main, true);
 
-                list.resize(t);
+                if (type == "element") list.resize(t);
 
                 prog_bar l1 = {"Attempts", 0, a, chrono::system_clock::now()};
                 bar_create(l1);
