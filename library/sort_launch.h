@@ -11,12 +11,11 @@
 #include "quick_sort.h"
 #include "radix_sort.h"
 #include "selection_sort.h"
-
 #include "intro_sort.h"
 
 typedef uint32_t key_type;
-
-struct val_t {
+struct val_t
+{
     key_type key;
     std::string data;
 };
@@ -46,15 +45,15 @@ vector<double> sort_launch(vector<val_t> base) {
     // 変数設定
     vector<val_t> vec;
     chrono::system_clock::time_point start, end;
-    vector<double> estimated(10);
-    bool suc;
+    vector<double> elapsed(10);
+    bool check;
     vector<val_t> sorted = base;
     sort(sorted.begin(), sorted.end(), cmp_t());
 
     for (int i = 0; i < 10; i++) {
         // 例外処理(低速化回避)
         if ((i == 1 || i == 4 || i == 8) && base.size() > 10000) {
-            estimated[i] = -1;
+            elapsed[i] = -1;
             continue;
         }
         
@@ -97,16 +96,16 @@ vector<double> sort_launch(vector<val_t> base) {
                 break;
         }
         end = chrono::system_clock::now();
-        estimated[i] = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count()/100000.0);
-        suc = true;
-        for (int i = 0; i < base.size(); i++) { if (vec[i].key != sorted[i].key) suc = false; }
-        if (!suc) estimated[i] = -1;
-        if (!suc) {
+        elapsed[i] = static_cast<double>(chrono::duration_cast<chrono::nanoseconds>(end-start).count() / 100000.0);
+        check = true;
+        for (int i = 0; i < base.size(); i++) { if (vec[i].key != sorted[i].key) check = false; }
+        if (!check) {
+            elapsed[i] = -1;
             fprintf(stderr, "\033[0KError has been occurred!: Sort Failure\n");
         }
     }
 
-    return estimated;
+    return elapsed;
 }
 
 #endif
