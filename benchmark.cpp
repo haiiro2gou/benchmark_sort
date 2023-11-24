@@ -178,7 +178,7 @@ int main() {
             prog_bar main = {"Main Loop", 0, (type == "element" ? n : size), chrono::system_clock::now()};
             bar_push(main);
             for (auto &t : target) {
-                bar.back.current = t;
+                bar.back().current = t;
                 bar_update();
 
                 if (type == "element") list.resize(t);
@@ -186,14 +186,14 @@ int main() {
                 prog_bar l1 = {"Attempts", 0, a, chrono::system_clock::now()};
                 bar_push(l1);
                 for (int i = 0; i < a; i++) {
-                    bar.back.current++;
+                    bar.back().current++;
                     bar_update();
 
                     // main sort phase
                     prog_bar gen = {"Randomizer", 0, (type == "element" ? t : n), chrono::system_clock::now()};
                     bar_push(gen);
                     for (int g1 = 0; g1 < (type == "element" ? t : n); g1++) {
-                        bar.back.current++;
+                        bar.back().current++;
                         bar_update();
 
                         mt19937 engine(seed_gen());
