@@ -69,6 +69,9 @@ std::string time_elapsed(std::chrono::system_clock::time_point start, std::chron
 }
 
 std::chrono::system_clock::time_point latest;
+
+void bar_update(bool force);
+
 vector<prog_bar> bar;
 void bar_push(prog_bar conf) {
     bar.push_back(conf);
@@ -82,7 +85,7 @@ void bar_update(bool force = false) {
             double percent = 100.0 * t.current / t.max;
             std::string progress = "";
             for (int i = 0; i < 30; i++) {
-                if (t.current * 30 >= t.max / (i + 1)) progress += "#";
+                if (t.current * 30 >= t.max * (i + 1)) progress += "#";
                 else progress += ".";
             }
             
