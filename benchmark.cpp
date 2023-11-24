@@ -69,10 +69,9 @@ std::string time_elapsed(std::chrono::system_clock::time_point start, std::chron
 }
 
 std::chrono::system_clock::time_point latest;
-
+vector<prog_bar> bar;
 void bar_update(bool force);
 
-vector<prog_bar> bar;
 void bar_push(prog_bar conf) {
     bar.push_back(conf);
     bar_update(true);
@@ -99,6 +98,9 @@ void bar_update(bool force = false) {
 }
 
 void bar_pop() {
+    for (int i = 0; i < bar.size(); i++) { fprintf(stderr, "\r\033[2B"); }
+    fprintf(stderr, "\r\033[1A\r\033[0K\r\033[1A\r\033[0K");
+    for (int i = 0; i < bar.size() - 1; i++) { fprintf(stderr, "\r\033[2A"); }
     bar.pop_back();
     bar_update(true);
 }
