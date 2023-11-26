@@ -2,6 +2,7 @@
 #define sort_launch_h
 
 #include <chrono>
+#include <iostream>
 
 #include "bubble_sort.h"
 #include "comb_sort.h"
@@ -101,7 +102,7 @@ vector<double> sort_launch(vector<val_t> base, int target) {
         for (int i = 0; i < base.size(); i++) { if (vec[i].key != sorted[i].key) check = false; }
         if (!check) {
             elapsed[i] = -1;
-            fprintf(stderr, "\033[0KError has been occurred!: Sort Failure\n");
+            fprintf(stderr, "\033[0KError has been occurred!: Sort Failure (%ld)\n", base.size());
         }
     }
 
