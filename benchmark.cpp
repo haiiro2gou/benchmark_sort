@@ -263,7 +263,7 @@ int main() {
                     vector<double> array(result.size());
                     for (int j = 0; j < result.size(); j++) { array[j] = result[j][i]; }
                     remove_outlier(array);
-                    ofs << accumulate(array.begin(), array.end(), 0.0) / a << (i < 11 - 1 ? ',' : '\n');
+                    ofs << accumulate(array.begin(), array.end(), 0.0) / a << (i < 10 ? ',' : '\n');
                 }
             }
         }
