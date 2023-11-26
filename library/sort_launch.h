@@ -11,6 +11,8 @@
 #include "quick_sort.h"
 #include "radix_sort.h"
 #include "selection_sort.h"
+
+#include "pre_selected_sort.h"
 #include "intro_sort.h"
 
 typedef uint32_t key_type;
@@ -41,23 +43,18 @@ struct get_key_t : public std::unary_function<val_t,key_type>
 
 using namespace std;
 
-vector<double> sort_launch(vector<val_t> base) {
-    // 変数設定
+vector<double> sort_launch(vector<val_t> base, int target) {
     vector<val_t> vec;
     chrono::system_clock::time_point start, end;
-    vector<double> elapsed(10);
+    vector<double> elapsed(11, -1);
     bool check;
     vector<val_t> sorted = base;
     sort(sorted.begin(), sorted.end(), cmp_t());
 
-    for (int i = 0; i < 10; i++) {
-        // 例外処理(低速化回避)
-        if ((i == 1 || i == 4 || i == 8) && base.size() > 10000) {
-            elapsed[i] = -1;
-            continue;
-        }
+    for (int i = 0; i < 11; i++) {
+        if (!(target & (1 << i))) continue;
+        if ((i == 1 || i == 4 || i == 8) && base.size() > 10000) continue;
         
-        // 処理呼び出し
         vec = base;
         start = chrono::system_clock::now();
         switch (i) {
@@ -90,6 +87,9 @@ vector<double> sort_launch(vector<val_t> base) {
                 break;
             case 9:
                 intro_sort(vec.begin(), vec.end(), cmp_t());
+                break;
+            case 10:
+                pre_selected_sort(vec.begin(), vec.end(), cmp_t());
                 break;
             default:
                 fprintf(stderr, "\033[0KError has been occurred!: Null Pointer Exception\n");

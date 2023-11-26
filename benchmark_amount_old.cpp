@@ -104,7 +104,7 @@ int main() {
             vector<val_t> base = get_rand_vector(size,size);
 
             // 本処理
-            vector<double> temp = sort_launch(base);
+            vector<double> temp = sort_launch(base, 1023);
 
             // 後ろに渡す
             data[data[0][1]+1] = temp;

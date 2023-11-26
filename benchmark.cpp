@@ -2,6 +2,7 @@
 // 特定の要素についてランダムなデータを生成し、ソート処理に要した時間を統計して出力する。
 // */
 
+#include <bitset>
 #include <cmath>
 #include <climits>
 #include <filesystem>
@@ -108,7 +109,7 @@ void bar_pop() {
 std::vector<int> get_candidate(int start, int end) {
     std::vector<int> ret((end - start) * 10);
     for (int i = start; i < end; i++) {
-        for (int j = 1; j <= 10; j++) {
+        for (int j = 1; j <= 11; j++) {
             ret[i * 10 + j - 1] = round(pow(10, 1.0 * j / 10 + i));
         }
     }
@@ -119,12 +120,12 @@ const int inf = INT_MAX / 2;
 int main() {
     using namespace std;
 
-    fprintf(stderr, "\r\033[0KSort Bench v0.2.9\n");
+    fprintf(stderr, "\r\033[0KSort Bench v0.3.0\n");
     fprintf(stderr, "\r\033[0KMade by @haiiro2gou\n");
     fprintf(stderr, "\r\033[0K\n");
 
     // input phase
-    int n, size, a; string type; bool skip = false;
+    int n, size, a, b; string type; bool skip = false;
     {
         int ipcheck = 0;
         while (!ipcheck) {
@@ -142,6 +143,8 @@ int main() {
             }
             int A = input("Multiplier", "Determines the number of attempts.", 0, 4);
             a = pow(10, A);
+            int B = input("Target", "Determines which sorting type to perform", 0, (1 << 11) - 1);
+            for (int i = 0; i < 11; i++) { b += B & (1 << i); }
             
             fprintf(stderr, "\r\033[0KYour input was...\n");
             fprintf(stderr, "\r\033[0KType: %s\n", type.c_str());
@@ -169,7 +172,7 @@ int main() {
     }
     else {
         // main phase
-        vector<vector<vector<double>>> result(target.size(), vector<vector<double>>(a, vector<double>(10)));
+        vector<vector<vector<double>>> result(target.size(), vector<vector<double>>(a, vector<double>(11)));
         {
             fprintf(stderr, "\r\033[0KMain Process has started...\n");
 
@@ -210,7 +213,7 @@ int main() {
                     }
                     bar_pop();
 
-                    result[marker][i] = sort_launch(list);
+                    result[marker][i] = sort_launch(list, b);
                 }
                 bar_pop();
 
@@ -256,11 +259,11 @@ int main() {
             string path = in + to_string(t) + ".csv";
             vector<vector<double>> result = convert_double(csv_read(path));
             if (ofs) {
-                for (int i = 0; i < 10; i++) {
+                for (int i = 0; i < 11; i++) {
                     vector<double> array(result.size());
                     for (int j = 0; j < result.size(); j++) { array[j] = result[j][i]; }
                     remove_outlier(array);
-                    ofs << accumulate(array.begin(), array.end(), 0.0) / a << (i < 9 ? ',' : '\n');
+                    ofs << accumulate(array.begin(), array.end(), 0.0) / a << (i < 11 - 1 ? ',' : '\n');
                 }
             }
         }

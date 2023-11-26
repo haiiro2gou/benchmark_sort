@@ -76,7 +76,7 @@ int main() {
         shuffle(base.begin(), base.end(), get_rand_mt);
 
         // ソート処理
-        vector<double> data = sort_launch(base);
+        vector<double> data = sort_launch(base, 1023);
 
         // 平均値更新
         /*
