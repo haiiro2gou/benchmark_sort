@@ -50,8 +50,8 @@ void pre_selected_sort(RAI a0, RAI aN, C cmp)
     const double s_dig = log10((*a0).data.length());
 
     if (n_dig - s_dig > 0) {
-        imake_heap(a0, aN, cmp);
-        isort_heap(a0, aN, cmp);
+        imake_heap(a0, N, cmp);
+        isort_heap(a0, N, cmp);
     }
     else {
         comb_sort(a0, aN, cmp);
