@@ -5,8 +5,7 @@
 #include <functional>
 #include <algorithm>
 
-#include "icomb_sort.h"
-#include "insertion_sort.h"
+#include "comb_sort.h"
 
 template <class RAI, class T, class C>
 void idown_heap(RAI a, T p, T q, C cmp)
@@ -30,11 +29,11 @@ void imake_heap(RAI a, const T N, C cmp)
 }
 
 template <class RAI, class T, class C>
-inline void isort_heap(RAI a, const T N, C cmp)
+void isort_heap(RAI a, const T N, C cmp)
 {
     for (T q = N-1; q > 0;) {
         std::swap(a[0], a[q]);
-        if (--q < 32) { insertion_sort(a, a+q+1, cmp); return; }
+        // if (--q < 32) { comb_sort(a, a+q+1, cmp); return; }
         idown_heap(a, T(0), q, cmp);
     }
 }
@@ -50,12 +49,12 @@ void pre_selected_sort(RAI a0, RAI aN, C cmp)
     const double n_dig = log10(N);
     const double s_dig = log10((*a0).data.length());
 
-    if (n_dig + s_dig < 7){
-        imake_heap(a0, N, cmp);
-        isort_heap(a0, N, cmp);
+    if (n_dig - s_dig > 0) {
+        imake_heap(a0, aN, cmp);
+        isort_heap(a0, aN, cmp);
     }
     else {
-        icomb_sort(a0, aN, cmp);
+        comb_sort(a0, aN, cmp);
     }
 }
 
