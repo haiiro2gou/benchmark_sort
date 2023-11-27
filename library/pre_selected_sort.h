@@ -33,7 +33,7 @@ void isort_heap(RAI a, const T N, C cmp)
 {
     for (T q = N-1; q > 0;) {
         std::swap(a[0], a[q]);
-        // if (--q < 32) { comb_sort(a, a+q+1, cmp); return; }
+        if (--q < 32) { comb_sort(a, a+q+1, cmp); return; }
         idown_heap(a, T(0), q, cmp);
     }
 }
