@@ -120,7 +120,7 @@ const int inf = INT_MAX / 2;
 int main() {
     using namespace std;
 
-    fprintf(stderr, "\r\033[0KSort Bench v0.3.5\n");
+    fprintf(stderr, "\r\033[0KSort Bench v0.3.6\n");
     fprintf(stderr, "\r\033[0KMade by @carbon-nil\n");
     fprintf(stderr, "\r\033[0K\n");
 
