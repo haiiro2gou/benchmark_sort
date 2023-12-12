@@ -13,7 +13,7 @@
 #include "radix_sort.h"
 #include "selection_sort.h"
 
-#include "pre_selected_sort.h"
+#include "new_sort.h"
 #include "intro_sort.h"
 
 typedef uint32_t key_type;
@@ -90,7 +90,7 @@ vector<double> sort_launch(vector<val_t> base, int target) {
                 intro_sort(vec.begin(), vec.end(), cmp_t());
                 break;
             case 10:
-                pre_selected_sort(vec.begin(), vec.end(), cmp_t());
+                new_sort(vec.begin(), vec.end(), cmp_t());
                 break;
             default:
                 fprintf(stderr, "\033[0KError has been occurred!: Null Pointer Exception\n");

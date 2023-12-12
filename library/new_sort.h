@@ -1,5 +1,5 @@
-#ifndef pre_selected_sort_h
-#define pre_selected_sort_h
+#ifndef new_sort_h
+#define new_sort_h
 
 #include <iterator>
 #include <functional>
@@ -39,7 +39,7 @@ void isort_heap(RAI a, const T N, C cmp)
 }
 
 template <class RAI, class C>
-void pre_selected_sort(RAI a0, RAI aN, C cmp)
+void new_sort(RAI a0, RAI aN, C cmp)
 {
     typedef typename std::iterator_traits<RAI>::value_type val_t;
     typedef typename std::iterator_traits<RAI>::difference_type dif_t;
@@ -49,7 +49,7 @@ void pre_selected_sort(RAI a0, RAI aN, C cmp)
     const double n_dig = log10(N);
     const double s_dig = log10((*a0).data.length());
 
-    if (n_dig - s_dig > 0.5) {
+    if (n_dig - s_dig > -1) {
         imake_heap(a0, N, cmp);
         isort_heap(a0, N, cmp);
     }
@@ -59,10 +59,10 @@ void pre_selected_sort(RAI a0, RAI aN, C cmp)
 }
 
 template <class RAI>
-inline void pre_selected_sort(RAI a0, RAI aN)
+inline void new_sort(RAI a0, RAI aN)
 {
     typedef typename std::iterator_traits<RAI>::value_tyep val_t;
-    pre_selected_sort(a0, aN, std::less<val_t>());
+    new_sort(a0, aN, std::less<val_t>());
 }
 
-#endif // pre_selected_sort_h
+#endif // new_sort_h
