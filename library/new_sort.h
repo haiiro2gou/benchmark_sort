@@ -49,7 +49,7 @@ void new_sort(RAI a0, RAI aN, C cmp)
     const double n_dig = log10(N);
     const double s_dig = log10((*a0).data.length());
 
-    if (n_dig - s_dig > -1) {
+    if (n_dig - s_dig > 1) {
         imake_heap(a0, N, cmp);
         isort_heap(a0, N, cmp);
     }
